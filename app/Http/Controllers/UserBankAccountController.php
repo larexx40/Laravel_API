@@ -22,14 +22,6 @@ class UserBankAccountController extends BaseController
      */
     public function index(Request $request)
     {
-        //get all bank accounts with pagination
-        // $perPage = $request->per_page ? $request->per_page : 10;
-        // $currentPage = $request->current_page ? $request->current_page : 1;
-        // $bankAccounts = UserBankAccount::paginate($perPage, ["*"], "page", $currentPage);
-        // $response = new APIPaginateCollection($bankAccounts, UserBankAccountResource::class);
-        // // $response = new APIPaginateCollection($products, UserBankAccountResource::class);
-        // return response()->json($response);
-
         $bankAccounts = UserBankAccount::all();
         $text = "Data fetched successfully";
         if(count($bankAccounts) == 0){

@@ -6,14 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class UserBankAccountRequest extends FormRequest
+class UserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -23,18 +23,18 @@ class UserBankAccountRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
-            "bankid" => "required|max:50|unique:user_bank_accounts,bankid",
-            "user_id" => "required|max:50",
-            "bank_name" => "required|max:50",
-            "account_no" => "required|max:15",
-            "account_name" => "required|max:100",
-            "sys_bank_id" => "required|max:50"
+        return [
+            //
+            'fname' => 'required|string|max:150',
+            'lname' => 'required|string|max:150',
+            'username' => 'required|string|max:150',
+            'email' => 'required|string|email|unique:users,email',
+            'password' => 'required|string|confirmed|min:8',
+            'phone' => ['required', 'string', 'regex:/^[0-9]{11}$/'],
+            'date_of_birth' => ['required', 'date', 'before:today'],
+            'terms' => 'accepted',
+
         ];
-        if($this->getMethod() == "PUT" || $this->getMethod() == "PATCH" || $this->getMethod() == "DELETE"){
-            $rules["bankid"] = "required|max:20";
-        }
-        return $rules;
     }
 
     public function failedValidation(Validator $validator)

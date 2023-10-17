@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\UserBankAccountController;
+use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,3 +25,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::apiResource('bankaccounts', UserBankAccountController::class);
 Route::post('adduserbank', [UserBankAccountController::class, 'store']);
 Route::get('bankaccount/{id}', [UserBankAccountController::class, 'show']);
+Route::get('users', [UserController::class, 'index']);

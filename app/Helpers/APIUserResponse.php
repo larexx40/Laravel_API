@@ -119,6 +119,7 @@ class APIUserResponse
 
     //Bank Account
     public static $addBankAccount = "Bank account added successfully";
+    
 
     
 }

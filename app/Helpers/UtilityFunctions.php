@@ -250,7 +250,7 @@ class UtilityFunctions extends Helpers
     public static function generateUniqueShortKey($tableName, $field){
         $loop = 0;
         while ($loop == 0){
-            $userKey = "ENG".static::generateShortKey(5);
+            $userKey = "USAFR".static::generateShortKey(5);
             if ( static::checkIfCodeisInDB($tableName, $field ,$userKey) ){
                 $loop = 0;
             }else {
