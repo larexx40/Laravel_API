@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserBankAccountController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -28,3 +29,12 @@ Route::get('bankaccount/{id}', [UserBankAccountController::class, 'show']);
 Route::get('users', [UserController::class, 'index']);
 Route::get('user/{id}', [UserController::class, 'show']);
 Route::post('adduser', [UserController::class, 'store']);
+
+Route::controller(AuthController::class)->group(function () {
+    Route::post('login', 'login');
+    Route::post('register', 'register');
+    Route::post('logout', 'logout');
+    Route::post('refresh', 'refresh');
+    Route::get('me', 'me');
+
+});

@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     //allow unauthenticated users to this endpoint
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:api', ['except' => ['login','register']]);
+    // }
 
     public function login(Request $request)
     {
