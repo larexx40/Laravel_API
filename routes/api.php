@@ -26,3 +26,5 @@ Route::apiResource('bankaccounts', UserBankAccountController::class);
 Route::post('adduserbank', [UserBankAccountController::class, 'store']);
 Route::get('bankaccount/{id}', [UserBankAccountController::class, 'show']);
 Route::get('users', [UserController::class, 'index']);
+Route::get('user/{id}', [UserController::class, 'show']);
+Route::post('adduser', [UserController::class, 'store']);

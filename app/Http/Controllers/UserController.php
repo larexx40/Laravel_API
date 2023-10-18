@@ -9,6 +9,7 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Utilities\UtilityFunctions;
+use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class UserController extends BaseController
     public function index()
     {
         //
-        $users = User::all();
+        $users = User::orderBy('id', 'desc')->get();
         $text = "Data fetched successfully";
         if(count($users) == 0){
             $text = "No user found";
@@ -62,11 +63,12 @@ class UserController extends BaseController
 
         //bycrypt the password
         $input['password'] = bcrypt($input['password']);   
-        
         //generate unique userid for user
         $input['userid'] = UtilityFunctions::generateUniqueShortKey("users", "userid");
+        $input['userpubkey'] = UtilityFunctions::generateUniquePubKey("users", "userpubkey");
 
         try{
+            //print input
             User::create($input);
             $text = APIUserResponse::$registerSuccess;
             $mainData = [];
@@ -80,6 +82,8 @@ class UserController extends BaseController
             $linktosolve = "https://";
             $errorCode = APIErrorCode::$internalInsertDBFatal;
             return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+        }catch(Exception $e){
+            return response()->json(['error' => 'An error occurred.'], 500);
         }
         
     }

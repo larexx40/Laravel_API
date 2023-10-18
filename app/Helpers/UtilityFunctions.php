@@ -232,6 +232,24 @@ class UtilityFunctions extends Helpers
         return true;
     }
 
+    public static function generateUniquePubKey($tableName, $field)
+    {
+        $loop = 0;
+        
+        while ($loop == 0) {
+            $userKey = "USDTAFR" . static::generatePubKey(37) . $tableName;
+
+            if (static::checkIfCodeIsInDB($tableName, $field, $userKey)) {
+                $loop = 0;
+            } else {
+                $loop = 1;
+                break;
+            }
+        }
+
+        return $userKey;
+    }
+
     public static function generatePubKey($strength){
         $input = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         $output = static::generate_string($input, $strength);
@@ -258,7 +276,6 @@ class UtilityFunctions extends Helpers
                 break;
             }
         }
-
         return $userKey;
     }
 
