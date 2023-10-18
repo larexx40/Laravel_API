@@ -39,6 +39,15 @@ class UserRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (#?!@$%^&*-).',
+            'phoneno.regex' => 'The phone number must be 11 digits in length and contain only numbers.',
+            'date_of_birth.before' => 'The date of birth must be in the past.',
+        ];
+    }
+
     public function failedValidation(Validator $validator)
     {
         
