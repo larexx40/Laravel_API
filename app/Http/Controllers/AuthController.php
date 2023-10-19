@@ -2,71 +2,145 @@
 
 namespace App\Http\Controllers;
 
+use App\Config\APIErrorCode;
+use App\Config\APIUserResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
+use App\Utilities\UtilityFunctions;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
-    //allow unauthenticated users to this endpoint
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api', ['except' => ['login','register']]);
-    // }
-
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-        $credentials = $request->only('email', 'password');
+        $input = $request->only(
+            "email",
+            "password",
+        );
+        $validator = Validator::make($input, [
+                'email' => 'required|string|email|exists:users,email',
+                'password' => 'required|string|min:6|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+            ],
+            $messages =[
+                'email.exists' => 'Email does not exist.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (#?!@$%^&*-).',
+            ]
+        );
 
-        $token = Auth::attempt($credentials);
-        if (!$token) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 401);
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+
+        $token = Auth::attempt($input);
+        if (!$token) {            
+            $errorInfo ='';
+            $text = APIUserResponse::$invalidLoginError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondBadRequest($text, $mainData, $errorInfo, $linktosolve, $errorCode);
         }
 
         $user = Auth::user();
-        return response()->json([
-            'status' => 'success',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
-
+        $text = APIUserResponse::$loginSuccessful;
+        $mainData = [
+            'token' => $token,
+            'type' => 'Bearer',
+        ];
+        return $this->respondOK($mainData, $text);
     }
 
     public function register(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
+        $input = $request->only(
+            "fname",
+            "lname",
+            "username",
+            "email",
+            "password",
+            "phoneno",
+            'dob',
+            'sex',
+            'refby',           
+        );
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Validate the request data using the rules specified in UserRequest
+        $validator = Validator::make($input, [
+                "fname" => "required",
+                'email' => 'required|string|email|unique:users,email',
+                'password' => 'required|string|min:6|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+                'phoneno' => [ 'string', 'regex:/^[0-9]{11}$/'],
+                'dob' => ['date', 'before:today'],
+                'sex' => 'required|in:male,female',
 
-        $token = Auth::login($user);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User created successfully',
-            'user' => $user,
-            'authorisation' => [
+                "lname" => "required",
+                "username" => "required",
+                "phoneno" => "required",
+                'dob' => 'required',
+                'sex' => 'required',
+            ],
+            $messages =[
+                'email.unique' => 'Email already exists.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (#?!@$%^&*-).',
+                'phoneno.regex' => 'The phone number must be 11 digits in length and contain only numbers.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+
+        //bycrypt the password
+        $input['password'] = bcrypt($input['password']);   
+        //generate unique userid for user
+        $input['userid'] = UtilityFunctions::generateUniqueShortKey("users", "userid");
+        $input['userpubkey'] = UtilityFunctions::generateUniquePubKey("users", "userpubkey");
+
+        try {
+            $user = User::create($input);           
+            $token = Auth::login($user);
+            $text = APIUserResponse::$registerSuccess;
+            $mainData = [
                 'token' => $token,
                 'type' => 'bearer',
-            ]
-        ]);
+            ];
+            return $this->respondOK($mainData, $text);
+            
+        }catch(QueryException $e){
+            $errorInfo = $e->errorInfo;
+            $text = APIUserResponse::$dbInsertError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalInsertDBFatal;
+            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+        
+        } catch (\Exception $e) {
+            $errorInfo = $e->getMessage();
+            $text = APIUserResponse::$dbInsertError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalInsertDBFatal;
+            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+        }
+        
     }
 
     public function logout()

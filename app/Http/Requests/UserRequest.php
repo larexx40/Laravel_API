@@ -26,15 +26,15 @@ class UserRequest extends FormRequest
         return [
             //
             'fname' => 'required|string|max:150',
-            'lname' => 'required|string|max:150',
+            'lname' => 'string|max:150',
             'username' => 'string|max:150',
             'email' => 'required|string|email|unique:users,email',
             'refby' => 'string|max:100',
             'userid' => 'string|max:100|unique:users,userid',
             'userpubkey' => 'string|max:200|unique:users,userpubkey',
             'password' => 'required|string|min:6|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
-            'phoneno' => ['required', 'string', 'regex:/^[0-9]{11}$/'],
-            'date_of_birth' => ['required', 'date', 'before:today'],
+            'phoneno' => [ 'string', 'regex:/^[0-9]{11}$/'],
+            'date_of_birth' => ['date', 'before:today'],
 
         ];
     }

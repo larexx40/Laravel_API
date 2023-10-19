@@ -8,11 +8,11 @@ class APIUserResponse
 {
     // General errors
     public static $methodUsedNotAllowed = "Method Used is not valid";
-    public static $invalidDataSent = "Incorrect Information Sent";
+    public static $respondValidationError = "Incorrect Information Sent";
     public static $unableToVerifyMail = "Unable to verify mail";
     public static $invalidUserDetail = "Invalid Email or password";
     public static $invalidAdmin = "Invalid admin id or email";
-    public static $loginSuccessful = "LogIn Successful";
+    public static $loginSuccessful = "Login Successful";
     public static $unauthorizedToken = "User not authorized";
     public static $unauthorizedAccess = "You did not have permission to access this endpoint";
 
@@ -22,8 +22,9 @@ class APIUserResponse
         self::$welcomeMessage = "Welcome to " . Config::get('app.name');
     }
 
-    // Login fail
+    // Login 
     public static $loginFailedError = "One or both of the data provided is invalid";
+    public static $invalidLoginError = "Invalid email or password";
     public static $suspendReason = "Your account has been suspended";
     public static $frozenAccount = "Your account has been frozen";
     public static $bannedAccount = "Your account has been banned";
@@ -32,6 +33,8 @@ class APIUserResponse
     public static $deletedUser = "User Account has been deleted";
     public static $passwordUpdated = "Password Updated";
 
+    
+    public static $unExpectedError = "Unexpected error occurred";
     // DB error
     public static $dbInsertError = "Error inserting to the database";
     public static $dbUpdatingError = "Error updating the database record";
@@ -61,9 +64,6 @@ class APIUserResponse
     public static $registerFail = "Unable to register";
     public static $unauthorizedUser = "User not authorized";
     public static $unableToVerified = "Unable to verify mail";
-    public static $businessnameExist = "Business name already exists";
-    public static $businessNumberExist = "Business number already exists";
-    public static $businessNumberTooLong = "Business number Should be 14 digits";
 
     // Email verification
     public static $tokenExpired = "OTP Expired";

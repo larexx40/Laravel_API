@@ -172,4 +172,29 @@ class BaseController extends Controller
 
         return response()->json($data, 503)->header('Content-Type', 'application/json');
     }
+
+    public function respondValidationError($maindata, $text, $hint, $linktosolve, $errorcode)
+    {
+        $method = request()->method();
+        $endpoint = url()->current();
+
+        $errordata = [
+            "code" => $errorcode,
+            "text" => "Validation error(s)",
+            "link" => $linktosolve,
+            "hint" => $hint,
+        ];
+
+        $data = [
+            "status" => false,
+            "text" => $text,
+            "data" => $maindata,
+            "time" => now()->format('d-m-y H:i:sA'),
+            "method" => $method,
+            "endpoint" => $endpoint,
+            "error" => $errordata,
+        ];
+
+        return response()->json($data, 422)->header('Content-Type', 'application/json');
+    }
 }

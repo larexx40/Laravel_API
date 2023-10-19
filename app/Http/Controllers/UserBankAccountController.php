@@ -56,6 +56,10 @@ class UserBankAccountController extends BaseController
             "sys_bank_id" => "required",
         ]);
 
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
         try{
             UserBankAccount::create($input);
             $text = APIUserResponse::$addBankAccount;
@@ -69,7 +73,7 @@ class UserBankAccountController extends BaseController
             $hint = ["Ensure to use the method stated in the documentation."];
             $linktosolve = "https://";
             $errorCode = APIErrorCode::$internalInsertDBFatal;
-            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+            return $this->respondInternalError($mainData, $text, $errorInfo, $linktosolve, $errorCode);
         }
 
     }

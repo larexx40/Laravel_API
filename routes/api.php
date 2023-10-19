@@ -23,18 +23,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('bankaccounts', UserBankAccountController::class);
-Route::post('adduserbank', [UserBankAccountController::class, 'store']);
-Route::get('bankaccount/{id}', [UserBankAccountController::class, 'show']);
+Route::name('auth')->group(base_path ('routes/authroute.php'));
+Route::name('userbank')->group(base_path ('routes/userBankroute.php'));
+Route::name('newuser')->group(base_path ('routes/userRoute.php'));
+
+
 Route::get('users', [UserController::class, 'index']);
 Route::get('user/{id}', [UserController::class, 'show']);
 Route::post('adduser', [UserController::class, 'store']);
 
-Route::controller(AuthController::class)->group(function () {
-    Route::post('login', 'login');
-    Route::post('register', 'register');
-    Route::post('logout', 'logout');
-    Route::post('refresh', 'refresh');
-    Route::get('me', 'me');
 
+//protected routes
+Route::group(['middleware' => 'auth:api'], function () {
+    // Protected routes go here
 });

@@ -26,10 +26,10 @@ class UserBankAccountRequest extends FormRequest
         $rules = [
             "bankid" => "required|max:50|unique:user_bank_accounts,bankid",
             "user_id" => "required|max:50",
-            "bank_name" => "required|max:50",
-            "account_no" => "required|max:15",
-            "account_name" => "required|max:100",
-            "sys_bank_id" => "required|max:50"
+            "bank_name" => "max:50",
+            "account_no" => "max:15",
+            "account_name" => "max:100",
+            "sys_bank_id" => "max:50"
         ];
         if($this->getMethod() == "PUT" || $this->getMethod() == "PATCH" || $this->getMethod() == "DELETE"){
             $rules["bankid"] = "required|max:20";
