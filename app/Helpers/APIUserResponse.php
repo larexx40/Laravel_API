@@ -40,6 +40,9 @@ class APIUserResponse
     public static $dbUpdatingError = "Error updating the database record";
     public static $nothingToUpdate = "Nothing to update";
     public static $deletingError = "Error deleting the database record";
+    public static $dbQueryError = "Error querying the database";
+    public static $dbOperationError = "Error performing database operation";
+    
 
     // Forgot password
     public static $forgotMailSent = "Recovery Mail sent successfully, kindly check your mail";

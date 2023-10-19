@@ -20,20 +20,40 @@ class NewUserController extends BaseController
         $this->userRepository = $userRepository;
     }
 
+
     public function getAllUsers()
     {
-        $users =  $this->userRepository->getAllUsers();
-        $text = "Data fetched successfully";
-        if(count($users) == 0){
-            $text = "No user found";
+        try{
+            $users =  $this->userRepository->getAllUsers();
+            $text = (count($users) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
+            $users = UserResource::collection($users);
+            return $this->respondOK($users, $text);
+        }catch(QueryException $e){
+            return $this->handleException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
         }
-        $users = UserResource::collection($users);
-        return $this->respondOK($users, $text);
     }
 
     public function getUserById(String $userid){
         // $userid = $request->userid;
-        return $this->userRepository->getUserById($userid);
+        try{
+            //print input
+            $user = $this->userRepository->getUserById($userid);
+            if(empty($user)){
+                $text = APIUserResponse::$getRequestNoRecords;
+                $mainData = [];
+                return $this->respondOK($mainData, $text);
+            }
+            $text = APIUserResponse::$getRequestFetched;
+            $mainData = $user;
+            return $this->respondOK($mainData, $text);
+
+        }catch(QueryException $e){
+            return $this->handleException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
     }
 
     public function addNewUser(Request $request){
@@ -89,22 +109,42 @@ class NewUserController extends BaseController
             return $this->respondOK($mainData, $text);
 
         }catch(QueryException $e){
-            $errorInfo = $e->errorInfo;
-            $text = APIUserResponse::$dbInsertError;
-            $mainData= [];
-            $hint = ["Ensure to use the method stated in the documentation."];
-            $linktosolve = "https://";
-            $errorCode = APIErrorCode::$internalInsertDBFatal;
-            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+            return $this->handleException($e);
         }catch(\Exception $e){
-            $errorInfo = $e->getMessage();
-            $text = APIUserResponse::$unExpectedError;
-            $mainData= [];
-            $hint = ["Ensure to use the method stated in the documentation."];
-            $linktosolve = "https://";
-            $errorCode = APIErrorCode::$internalInsertDBFatal;
-            return $this->respondInternalError($mainData, $text, $errorInfo, $linktosolve, $errorCode);
+            return $this->handleException($e);
         }
 
+    }
+
+    protected function handleException(\Exception $e)
+    {
+        $errorInfo = $e->getMessage();
+        $text = APIUserResponse::$unExpectedError;
+        $mainData= [];
+        $hint = ["Ensure to use the method stated in the documentation."];
+        $linktosolve = "https://";
+        $errorCode = APIErrorCode::$internalInsertDBFatal;
+        return $this->respondInternalError($mainData, $text, $errorInfo, $linktosolve, $errorCode);
+    }
+
+    protected function handleQueryException(QueryException $e){
+        $method = request()->method();
+        $errorMessages = [
+            'POST' => APIUserResponse::$dbInsertError,
+            'GET' => APIUserResponse::$dbQueryError,
+            'PUT' => APIUserResponse::$dbUpdatingError,
+            'PATCH' => APIUserResponse::$dbUpdatingError,
+            'DELETE' => APIUserResponse::$deletingError,
+        ];
+    
+        // Default error message in case of an unknown method
+        $defaultErrorMessage = APIUserResponse::$dbOperationError;    
+        $text = $errorMessages[$method] ?? $defaultErrorMessage;
+        $errorInfo = $e->errorInfo;
+        $mainData= [];
+        $hint = ["Ensure to use the method stated in the documentation."];
+        $linktosolve = "https://";
+        $errorCode = APIErrorCode::$internalInsertDBFatal;
+        return $this->respondInternalError($mainData, $text, $errorInfo, $linktosolve, $errorCode);
     }
 }
