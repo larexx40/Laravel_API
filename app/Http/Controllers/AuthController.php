@@ -15,8 +15,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class AuthController extends BaseController
-{
+class AuthController extends BaseController{
+
+    public function __construct(){
+        $this->middleware("auth:api", ["except" => ["login", "register"]
+    ]);
+    }
     public function login(Request $request)
     {
         $input = $request->only(

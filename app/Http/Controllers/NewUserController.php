@@ -18,7 +18,13 @@ class NewUserController extends BaseController
     private UserRepositoryInterface $userRepository ;
     public function __construct(UserRepositoryInterface $userRepository){
         $this->userRepository = $userRepository;
+        $this->middleware('auth:api');
     }
+
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:api');
+    // }
 
 
     public function getAllUsers()
@@ -29,7 +35,7 @@ class NewUserController extends BaseController
             $users = UserResource::collection($users);
             return $this->respondOK($users, $text);
         }catch(QueryException $e){
-            return $this->handleException($e);
+            return $this->handleQueryException($e);
         }catch(\Exception $e){
             return $this->handleException($e);
         }
@@ -50,7 +56,7 @@ class NewUserController extends BaseController
             return $this->respondOK($mainData, $text);
 
         }catch(QueryException $e){
-            return $this->handleException($e);
+            return $this->handleQueryException($e);
         }catch(\Exception $e){
             return $this->handleException($e);
         }
@@ -109,7 +115,7 @@ class NewUserController extends BaseController
             return $this->respondOK($mainData, $text);
 
         }catch(QueryException $e){
-            return $this->handleException($e);
+            return $this->handleQueryException($e);
         }catch(\Exception $e){
             return $this->handleException($e);
         }
