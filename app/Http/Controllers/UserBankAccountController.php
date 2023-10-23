@@ -5,63 +5,89 @@ namespace App\Http\Controllers;
 use App\Config\APIErrorCode;
 use App\Config\APIUserResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UserBankAccountRequest;
-use App\Http\Resources\APIPaginateCollection;
 use App\Http\Resources\UserBankAccountResource;
+use App\Interfaces\UserBankInterface;
 use App\Models\UserBankAccount;
+use App\Utilities\UtilityFunctions;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class UserBankAccountController extends BaseController
 {
+
+    private UserBankInterface $userBankRepository;
+    public function __construct(UserBankInterface $userBankRepository)
+    {
+        $this->userBankRepository = $userBankRepository;
+        
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $bankAccounts = UserBankAccount::all();
-        $text = "Data fetched successfully";
-        if(count($bankAccounts) == 0){
-            $text = "No record found";
+        dd("hello");
+        try {
+            $userid = Auth::user()->userid;
+            $bankAccounts = $this->userBankRepository->getUserBankByUserid($userid);
+            $text = (count($bankAccounts) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
+            $bankAccounts = UserBankAccountResource::collection($bankAccounts);
+            return $this->respondOK($bankAccounts, $text);
+        } catch(\Exception $e){
+            return $this->handleException($e);
         }
-        $bankAccounts = UserBankAccountResource::collection($bankAccounts);
-        return $this->respondOK($bankAccounts, $text);
         
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(UserBankAccountRequest $request)
+    public function addBank(Request $request)
     {
 
+
         $input = $request->only(
-            "bankid",
-            "user_id",
-            "bank_name",
             "account_no",
             "account_name",
             "sys_bank_id",
         );
         // Validate the request data using the rules specified in UserBankAccountRequest
-        $validator = Validator::make($input, [
-            "bankid" => "required",
-            "user_id" => "required",
-            "bank_name" => "required",
-            "account_no" => "required",
-            "account_name" => "required",
-            "sys_bank_id" => "required",
-        ]);
+        $validator = Validator::add($input, [
+                "account_no" => "required|String|regex:/^[0-9]{10}|[0-9]{16}$/",
+                "account_name" => "required",
+                "sys_bank_id" => "required",
+                
+            ],
+            $messages =[
+                'sys_bank_id.required' => 'Select your bank',
+                'account_no.required' => 'Pass your account number',
+                'account_no.regex' => 'Invalid account number',
+                'account_name.required' => 'Pass your account name',
+            ]
+        );
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
         }
 
+        $input['bankid'] = UtilityFunctions::generateUniqueShortKey('user_bank_accounts', 'bankid');
+        $input['status'] = 1;
+        $input['is_default'] = 0;
+
         try{
-            UserBankAccount::create($input);
+            $userid = Auth::user()->userid;
+            $input['user_id'] = $userid;
+            $user = $this->userBankRepository->createUserBank($input);
             $text = APIUserResponse::$addBankAccount;
             $mainData = [];
             return $this->respondOK($mainData, $text);
@@ -127,5 +153,16 @@ class UserBankAccountController extends BaseController
             "success" => true,
             "message" => "Bank account deleted successfully"
         ]);
+    }
+
+    protected function handleException(\Exception $e)
+    {
+        $errorInfo = $e->getMessage();
+        $text = APIUserResponse::$unExpectedError;
+        $mainData= [];
+        $hint = ["Ensure to use the method stated in the documentation."];
+        $linktosolve = "https://";
+        $errorCode = APIErrorCode::$internalInsertDBFatal;
+        return $this->respondInternalError($mainData, $text, $errorInfo, $linktosolve, $errorCode);
     }
 }

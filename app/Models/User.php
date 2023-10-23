@@ -59,11 +59,10 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
     ];
 
-    public function products()
+    public function userBankAccounts()
     {
         return $this->hasMany(UserBankAccount::class);
     }
-
     
      /**
      * Get the identifier that will be stored in the subject claim of the JWT.

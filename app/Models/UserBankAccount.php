@@ -21,4 +21,7 @@ class UserBankAccount extends Model
         "sys_bank_id"
         
     ];
+
+   
 }
+

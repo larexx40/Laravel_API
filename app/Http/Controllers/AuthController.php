@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends BaseController{
 
@@ -157,9 +158,15 @@ class AuthController extends BaseController{
 
     public function me()
     {
+        $token = request()->header('Authorization');
+        // $userDetails =  JWTAuth::toUser($token);
+        $userDetails= Auth::user();
+        unset($userDetails->password);
+        unset($userDetails->userpubkey);
+        
         return response()->json([
             'status' => 'success',
-            'user' => Auth::user(),
+            'user' => $userDetails,
         ]);
     }
 
