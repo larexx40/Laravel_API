@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Route;
 
     });
 
-    Route::group(['middleware' => 'jwt.auth'], function () {
+    Route::group(['middleware' => 'auth.jwt'], function () {
         // Define your protected routes here
         Route::get('userdetails', [AuthController::class, 'me']);
-        // Route::get('bankaccounts/{id}', 'show');
-        // Route::post('bankaccounts', 'store');
     });

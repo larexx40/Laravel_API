@@ -86,7 +86,7 @@ class BaseController extends Controller
 
         $errordata = [
             "code" => $errorcode,
-            "text" => "User data is wrong",
+            "text" => "User not authorised",
             "link" => $linktosolve,
             "hint" => $hint,
         ];
