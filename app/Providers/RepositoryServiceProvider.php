@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Interfaces\ResetPasswordInterface;
 use App\Interfaces\UserBankInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Repositories\UserBankRepository;
@@ -18,6 +19,7 @@ class RepositoryServiceProvider extends ServiceProvider
         // register all database repositories (interfase and implementation)
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(UserBankInterface::class, UserBankRepository::class);
+        $this->app->bind(ResetPasswordInterface::class, ResetPasswordRepository::class);
     }
 
     /**

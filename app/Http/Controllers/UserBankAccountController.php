@@ -29,9 +29,7 @@ class UserBankAccountController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        dd("hello");
+    public function index(Request $request){
         try {
             $userid = Auth::user()->userid;
             $bankAccounts = $this->userBankRepository->getUserBankByUserid($userid);

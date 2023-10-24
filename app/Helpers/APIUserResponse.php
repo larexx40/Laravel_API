@@ -47,6 +47,7 @@ class APIUserResponse
     // Forgot password
     public static $forgotMailSent = "Recovery Mail sent successfully, kindly check your mail";
     public static $errorOccurred = "An Error occurred, Please contact support";
+    public static $emailNotExist = "Account with this email does not exist";
 
     // Image
     public static $invalidImageSent = "Invalid image sent";
@@ -75,6 +76,7 @@ class APIUserResponse
     public static $alreadyVerified = "Email already verified";
 
     // OTP
+    public static $forgotPasswordOTP = "Forgot password OTP sent to your mail";
     public static $OTPSentViaMail = "OTP sent to your mail";
     public static $OTPSentViaSMS = "OTP sent to your phone";
     public static $invalidOTP = "Incorrect token";

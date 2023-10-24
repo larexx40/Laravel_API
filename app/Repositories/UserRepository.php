@@ -23,8 +23,13 @@ class UserRepository implements UserRepositoryInterface {
         return User::where('email', $email)->first();
     }
 
-    public function getUserByPubkey($email){
-        return User::where('email', $email)->first();
+    public function getUserByPubkey($userpubkey){
+        return User::where('userpubkey', $userpubkey)->first();
+    }
+
+    public function getUser($column, $value)
+    {
+        return User::where($column, $value)->first();
     }
 
 
@@ -43,6 +48,15 @@ class UserRepository implements UserRepositoryInterface {
     {
         // return User::whereId($userid)->update($newDetails);
         return User::query()->where('userid', $userid)->update($newDetails);
+    }
+
+    public function checkIfUserExist($column, $value){
+        return User::where($column, $value)->exists();
+    }
+
+    public function saveToUser($details)
+    {
+        return User::create($details);
     }
     
 }
