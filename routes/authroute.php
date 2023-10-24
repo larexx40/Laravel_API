@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordResetTokenController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -16,4 +17,10 @@ use Illuminate\Support\Facades\Route;
     Route::group(['middleware' => 'auth.jwt'], function () {
         // Define your protected routes here
         Route::get('userdetails', [AuthController::class, 'me']);
+    });
+
+    Route::controller(PasswordResetTokenController::class)->group(function () {
+        Route::post('forget-password', 'forgetPassword');
+        Route::post('verify-token', 'verifyToken');
+        Route::post('reset-password', 'resetPassword');
     });

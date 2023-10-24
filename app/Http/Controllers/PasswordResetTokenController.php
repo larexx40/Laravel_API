@@ -7,24 +7,24 @@ use App\Config\APIUserResponse;
 use App\Http\Controllers\Controller;
 use App\Interfaces\ResetPasswordInterface;
 use App\Interfaces\UserRepositoryInterface;
+use App\Mail\SendCodeResetPassword;
+use App\Repositories\UserRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class PasswordResetTokenController extends BaseController
 {
     //
     private ResetPasswordInterface $resetPasswordRepository;
-    public function __construct(ResetPasswordInterface $resetPasswordRepository)
+    private UserRepositoryInterface $userRepository;
+    public function __construct(ResetPasswordInterface $resetPasswordRepository, UserRepositoryInterface $userRepository)
     {
         $this->resetPasswordRepository = $resetPasswordRepository;
-    }
-
-    private UserRepositoryInterface $userRepository;
-    public function __construct2(UserRepositoryInterface $userRepository)
-    {
         $this->userRepository = $userRepository;
     }
+
 
     public function forgetPassword(Request $request)
     {
@@ -53,6 +53,8 @@ class PasswordResetTokenController extends BaseController
         try {  
             //check if email exist
             $userExist = $this->userRepository->checkIfUserExist("email", $input['email']);
+            
+            // $userExist = UserRepository::checkIfUserExist("email", $input['email']);
             if(!$userExist){
                 $text = APIUserResponse::$emailNotExist;
                 $mainData= [];
@@ -69,7 +71,8 @@ class PasswordResetTokenController extends BaseController
             $this->resetPasswordRepository->addResetToken($input);
 
             //send email
-            // $this->resetPasswordRepository->sendEmail($input['email'], $input['token']);
+            // Mail::to($input['email'])->send(new SendCodeResetPassword($input['token']));
+
             $mainData = [];
             $text = APIUserResponse::$forgotPasswordOTP;
             return $this->respondOK($mainData, $text);
@@ -133,9 +136,6 @@ class PasswordResetTokenController extends BaseController
                 $errorCode = APIErrorCode::$invalidDataSent;
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
-
-            // delete current code 
-            $passwordReset->delete();
 
             $mainData = [];
             $text = APIUserResponse::$validOTP;

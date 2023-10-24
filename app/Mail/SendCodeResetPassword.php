@@ -16,9 +16,17 @@ class SendCodeResetPassword extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+
+     public $code;
+
+    public function __construct($code)
     {
-        //
+        $this->code = $code;
+    }
+
+    public function build()
+    {
+        return $this->markdown('emails.send-code-reset-password');
     }
 
     /**

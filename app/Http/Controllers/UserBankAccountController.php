@@ -14,7 +14,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class UserBankAccountController extends BaseController
 {
@@ -55,8 +54,8 @@ class UserBankAccountController extends BaseController
             "sys_bank_id",
         );
         // Validate the request data using the rules specified in UserBankAccountRequest
-        $validator = Validator::add($input, [
-                "account_no" => "required|String|regex:/^[0-9]{10}|[0-9]{16}$/",
+        $validator = Validator::make($input, [
+                "account_no" => "required|regex:/^[0-9]{10,16}$/",
                 "account_name" => "required",
                 "sys_bank_id" => "required",
                 
@@ -80,6 +79,7 @@ class UserBankAccountController extends BaseController
 
         $input['bankid'] = UtilityFunctions::generateUniqueShortKey('user_bank_accounts', 'bankid');
         $input['status'] = 1;
+        $input['bank_name'] = "Bank of America";
         $input['is_default'] = 0;
 
         try{

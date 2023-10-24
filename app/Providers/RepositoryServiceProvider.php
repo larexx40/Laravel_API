@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Interfaces\ResetPasswordInterface;
 use App\Interfaces\UserBankInterface;
 use App\Interfaces\UserRepositoryInterface;
+use App\Repositories\ResetPasswordRepository;
 use App\Repositories\UserBankRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\ServiceProvider;

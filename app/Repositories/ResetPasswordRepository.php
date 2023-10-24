@@ -22,7 +22,8 @@ class ResetPasswordRepository implements ResetPasswordInterface {
     }
 
     public function getTokenByToken($token){
-        return PasswordResetToken::where('token', $token)->first();
+        $tokenDetails = PasswordResetToken::where('token', $token)->first();
+        return $tokenDetails;
     }
 
     public function deleteTokenByToken($token){
