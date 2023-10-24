@@ -58,5 +58,16 @@ class UserRepository implements UserRepositoryInterface {
     {
         return User::create($details);
     }
+
+    public function getUserData($column, $value, $whatToGet=[])
+    {
+        if (empty($whatToGet)) {
+            // If $whatToGet is not specified, get all columns
+            return User::where($column, $value)->first();
+        } else {
+            // If $whatToGet is specified, fetch only those columns
+            return User::where($column, $value)->select($whatToGet)->first();
+        }
+    }
     
 }

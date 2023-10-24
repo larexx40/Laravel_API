@@ -9,6 +9,7 @@ interface UserRepositoryInterface
     public function getUserByPubkey($userpubkey);
     public function checkIfUserExist($column, $value);
     public function getUser($column, $value);
+    public function getUserData($column, $value, $whatToGet='');
     public function getUserById($userid);
     public function deleteUser($userid);
     public function createUser(array $userDetails);

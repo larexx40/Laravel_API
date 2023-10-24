@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Interfaces\ResetPasswordInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Mail\SendCodeResetPassword;
+use App\Mail\UserEmails;
 use App\Repositories\UserRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -52,10 +53,10 @@ class PasswordResetTokenController extends BaseController
 
         try {  
             //check if email exist
-            $userExist = $this->userRepository->checkIfUserExist("email", $input['email']);
+            $userInfo = $this->userRepository->getUserData("email", $input['email'], ['fname', 'lname', 'username']);
             
             // $userExist = UserRepository::checkIfUserExist("email", $input['email']);
-            if(!$userExist){
+            if(!$userInfo){
                 $text = APIUserResponse::$emailNotExist;
                 $mainData= [];
                 $hint = ['Pass in mail you used to register',"Ensure to use the method stated in the documentation."];
@@ -71,7 +72,13 @@ class PasswordResetTokenController extends BaseController
             $this->resetPasswordRepository->addResetToken($input);
 
             //send email
-            // Mail::to($input['email'])->send(new SendCodeResetPassword($input['token']));
+            $user = (object) [
+                'name' => $userInfo->fname ?? $userInfo->lname ?? $userInfo->username,
+                'email' => $input['email'],
+            ];
+            Mail::to($input['email'])->send(
+                (new UserEmails($user))->passwordResetEmail()
+            );
 
             $mainData = [];
             $text = APIUserResponse::$forgotPasswordOTP;
