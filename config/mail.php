@@ -50,18 +50,26 @@ return [
             'transport' => 'ses',
         ],
 
-        'mailgun' => [
-            'transport' => 'mailgun',
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
-        ],
+        // 'mailgun' => [
+        //     'transport' => 'mailgun',
+        //     // 'client' => [
+        //     //     'timeout' => 5,
+        //     // ],
+        // ],
 
+        // 'postmark' => [
+        //     'transport' => 'postmark',
+        //     // 'client' => [
+        //     //     'timeout' => 5,
+        //     // ],
+        // ],
+
+        'mailgun' => [
+            'transport' => 'queue', // Use the 'queue' driver for Mailgun
+        ],
+    
         'postmark' => [
-            'transport' => 'postmark',
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
+            'transport' => 'queue', // Use the 'queue' driver for Postmark
         ],
 
         'sendmail' => [

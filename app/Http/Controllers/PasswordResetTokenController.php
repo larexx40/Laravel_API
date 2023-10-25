@@ -76,9 +76,12 @@ class PasswordResetTokenController extends BaseController
                 'name' => $userInfo->fname ?? $userInfo->lname ?? $userInfo->username,
                 'email' => $input['email'],
             ];
-            Mail::to($input['email'])->send(
-                (new UserEmails($user))->passwordResetEmail($user, $input['token'])
-            );
+            
+            //send mail ithout queue
+            // Mail::to($input['email'])->send(
+            //     (new UserEmails($user))->passwordResetEmail($user, $input['token'])
+            // );
+            Mail::to($input['email'])->queue((new UserEmails($user))->passwordResetEmail($user, $input['token']));
 
             $mainData = [];
             $text = APIUserResponse::$forgotPasswordOTP;
@@ -133,9 +136,7 @@ class PasswordResetTokenController extends BaseController
             $currentTime = Carbon::now();
 
             // Compare the current time with the expiration time.
-            if ($currentTime > $expirationTime) {
-                // $passwordReset->delete();
-                
+            if ($currentTime > $expirationTime) {                
                 $text = APIUserResponse::$OTPExpire;
                 $mainData = [];
                 $hint = ["Token expired."];
@@ -200,7 +201,6 @@ class PasswordResetTokenController extends BaseController
 
             // Compare the current time with the expiration time.
             if ($currentTime > $expirationTime) {
-                // $passwordReset->delete();
                 
                 $text = APIUserResponse::$OTPExpire;
                 $mainData = [];
@@ -213,7 +213,10 @@ class PasswordResetTokenController extends BaseController
             // update password with user email
             $user = $this->userRepository->getUserByEmail($passwordReset->email);
             $user->password = bcrypt($input['password']);
-            $user->save();          
+            $user->save(); 
+            
+            // delete token from db
+            $passwordReset->delete();
 
             $mainData = [];
             $text = APIUserResponse::$resetPasswordMessage;
