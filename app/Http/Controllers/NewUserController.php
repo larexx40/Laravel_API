@@ -21,11 +21,6 @@ class NewUserController extends BaseController
         $this->middleware('auth:api');
     }
 
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api');
-    // }
-
 
     public function getAllUsers()
     {

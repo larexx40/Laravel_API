@@ -18,10 +18,6 @@ use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends BaseController{
 
-    // public function __construct(){
-    //     $this->middleware("auth:api", ["except" => ["login", "register"]]);
-    // }
-
 
     public function login(Request $request)
     {
