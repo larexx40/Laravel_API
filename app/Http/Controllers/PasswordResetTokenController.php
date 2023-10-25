@@ -77,7 +77,7 @@ class PasswordResetTokenController extends BaseController
                 'email' => $input['email'],
             ];
             Mail::to($input['email'])->send(
-                (new UserEmails($user))->passwordResetEmail()
+                (new UserEmails($user))->passwordResetEmail($user, $input['token'])
             );
 
             $mainData = [];
