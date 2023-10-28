@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class Admin extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -22,23 +20,17 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'userid',
-        'fname',
-        'lname',
+        'adminid',
+        'name',
         'username',
         'email',
         'password',
-        'pin',
-        'profile_pic',
         'phoneno',
-        'dob',
-        'sex',
-        'refby',
-        'refcode',
-        'userpubkey',
-        'fcm',
-        'is_email_verified',
-        'is_phone_verified',
+        'status',
+        'adminlevel',
+        'adminpubkey',
+        'profile_updated',
+        'password_updated',
 
     ];
 
@@ -49,7 +41,6 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password',
-        'remember_token',
     ];
 
     /**
@@ -58,7 +49,6 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
@@ -70,11 +60,6 @@ class User extends Authenticatable implements JWTSubject
         return Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('Y-m-d');
     }
 
-    public function userBankAccounts()
-    {
-        return $this->hasMany(UserBankAccount::class);
-    }
-
      /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
@@ -83,7 +68,6 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
-        // return $this->userid;
     }
 
     /**
@@ -95,5 +79,4 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-
 }

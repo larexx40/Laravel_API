@@ -45,17 +45,16 @@ class AuthController extends BaseController{
         }
 
         $token = Auth::attempt($input);
-        if (!$token) {            
-            $errorInfo ='';
+        if (!$token) {       
             $text = APIUserResponse::$invalidLoginError;
             $mainData= [];
             $hint = ["Ensure to use the method stated in the documentation."];
             $linktosolve = "https://";
             $errorCode = APIErrorCode::$internalUserWarning;
-            return $this->respondBadRequest($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+            return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
         }
 
-        $user = Auth::user();
+        // $user = Auth::user();
         $text = APIUserResponse::$loginSuccessful;
         $mainData = [
             'token' => $token,
@@ -177,6 +176,68 @@ class AuthController extends BaseController{
                 'token' => Auth::refresh(),
                 'type' => 'bearer',
             ]
+        ]);
+    }
+
+
+    public function adminLogin(Request $request)
+    {
+        $input = $request->only(
+            "email",
+            "password",
+        );
+        $validator = Validator::make($input, [
+                'email' => 'required|string|email|exists:admins,email',
+                'password' => 'required|string|min:6|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+            ],
+            $messages =[
+                'email.exists' => 'Email does not exist.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (#?!@$%^&*-).',
+            ]
+        );
+
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+
+        //admin login 
+        $token = Auth::guard('admin')->attempt($input);
+        if (!$token) {            
+            $errorInfo ='';
+            $text = APIUserResponse::$invalidLoginError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondBadRequest($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+        }
+
+        // $admin = Auth::guard('admins')->user();
+        $text = APIUserResponse::$loginSuccessful;
+        $mainData = [
+            'token' => $token,
+            'type' => 'Bearer',
+        ];
+        return $this->respondOK($mainData, $text);
+    }
+
+    public function adminDetails()
+    {
+        $adminDetails= Auth::guard('admin')->user();
+        $adminDetails['status_value'] = $adminDetails->status = 1 ? "Active" : "Banned";
+        $adminDetails['created_at'] = $adminDetails->created_at->format('d-m-Y');
+        unset($adminDetails->password);
+        unset($adminDetails->adminpubkey);
+        // unset($adminDetails->updated_at);
+        
+        return response()->json([
+            'status' => 'success',
+            'user' => $adminDetails,
         ]);
     }
 

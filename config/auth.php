@@ -47,6 +47,11 @@ return [
             'provider' => 'users',
         ],
 
+        'admin' => [  // Add a new guard for admins
+            'driver' => 'jwt',  // Use JWT for admin guard
+            'provider' => 'admins',  // Use the 'admins' provider for admin authentication
+        ],
+
     ],
 
     /*
@@ -72,10 +77,10 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'admins' => [  // Add a new provider for admins
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,  // Replace with the actual model for admin users
+        ],
     ],
 
     /*

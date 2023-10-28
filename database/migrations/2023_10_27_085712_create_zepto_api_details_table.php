@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_tokens', function (Blueprint $table) {
+        Schema::create('zepto_api_details', function (Blueprint $table) {
             $table->id();
-            $table->string('userid', 50)->default('');
-            $table->string('user_identity',150)->default('');
-            $table->integer('identity_type')->default(1);
-            $table->integer('token_type')->default(1);
-            $table->string('expire_at')->default('');
+            $table->string('name', 100)->default('');
+            $table->string('emailfrom', 100)->default('');
+            $table->integer('status')->default(0);
+            $table->string('apikey', 200)->default('');
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_tokens');
+        Schema::dropIfExists('zepto_api_details');
     }
 };

@@ -19,21 +19,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
+//register route in api
 Route::name('auth')->group(base_path ('routes/authroute.php'));
 Route::name('userbank')->group(base_path ('routes/userBankroute.php'));
-Route::name('newuser')->group(base_path ('routes/userRoute.php'));
+Route::name('user')->group(base_path ('routes/userRoute.php'));
+Route::name('admin')->group(base_path ('routes/adminRoute.php'));
+// Route::name('sendgrid')->group(base_path ('routes/sendgridRoute.php'));
 
 
-Route::get('users', [UserController::class, 'index']);
-Route::get('user/{id}', [UserController::class, 'show']);
-Route::post('adduser', [UserController::class, 'store']);
+// Route::get('users', [UserController::class, 'index']);
+// Route::get('user/{id}', [UserController::class, 'show']);
+// Route::post('adduser', [UserController::class, 'store']);
 
 
-//protected routes
-Route::group(['middleware' => 'auth:api'], function () {
-    // Protected routes go here
-});
+// //protected routes
+// Route::group(['middleware' => 'auth:api'], function () {
+//     // Protected routes go here
+// });

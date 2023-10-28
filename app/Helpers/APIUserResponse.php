@@ -9,7 +9,6 @@ class APIUserResponse
     // General errors
     public static $methodUsedNotAllowed = "Method Used is not valid";
     public static $respondValidationError = "Incorrect Information Sent";
-    public static $unableToVerifyMail = "Unable to verify mail";
     public static $invalidUserDetail = "Invalid Email or password";
     public static $invalidAdmin = "Invalid admin id or email";
     public static $loginSuccessful = "Login Successful";
@@ -22,7 +21,7 @@ class APIUserResponse
         self::$welcomeMessage = "Welcome to " . Config::get('app.name');
     }
 
-    // Login 
+    // Login
     public static $loginFailedError = "One or both of the data provided is invalid";
     public static $invalidLoginError = "Invalid email or password";
     public static $suspendReason = "Your account has been suspended";
@@ -33,7 +32,7 @@ class APIUserResponse
     public static $deletedUser = "User Account has been deleted";
     public static $passwordUpdated = "Password Updated";
 
-    
+
     public static $unExpectedError = "Unexpected error occurred";
     // DB error
     public static $dbInsertError = "Error inserting to the database";
@@ -42,7 +41,7 @@ class APIUserResponse
     public static $deletingError = "Error deleting the database record";
     public static $dbQueryError = "Error querying the database";
     public static $dbOperationError = "Error performing database operation";
-    
+
 
     // Forgot password
     public static $forgotMailSent = "Recovery Mail sent successfully, kindly check your mail";
@@ -71,11 +70,20 @@ class APIUserResponse
 
     // Email verification
     public static $tokenExpired = "OTP Expired";
+    public static $userEmailNotExist = "Email does not exist";
     public static $successEmail = "Email verified successfully";
     public static $sendOTPError = "Unable to send OTP";
     public static $alreadyVerified = "Email already verified";
+    public static $unableToVerifyMail = "Unable to verify email";
+
+    // Phone verification
+    public static $successPhoneVerify = "Phone verified successfully";
+    public static $phoneAlreadyVerified = "Phone already verified";
+    public static $unableToVerifyPhone = "Unable to verify phone";
+
 
     // OTP
+    public static $invalidToken = "Invalid token";
     public static $forgotPasswordOTP = "Forgot password OTP sent to your mail";
     public static $OTPSentViaMail = "OTP sent to your mail";
     public static $OTPSentViaSMS = "OTP sent to your phone";
@@ -83,6 +91,10 @@ class APIUserResponse
     public static $OTPExpire = "OTP expired";
     public static $OTPUsed = "Code has already been used";
     public static $validOTP = "OTP Valid";
+
+    // Pin
+    public static $invalidPin = "Invalid Pin";
+    public static $pinSet = "Pin set successfully";
 
     // Success message
     public static $registerSuccess = "Register Successful";
@@ -103,11 +115,15 @@ class APIUserResponse
     public static $getRequestNoRecords = "No Records Found";
 
     // Admin
+    public static $adminDetailsUpdate = "Admin details updated successfully";
+    public static $adminAdded = "New admin added successfully";
     public static $invalidAdminId = "Invalid admin id";
     public static $getAdminError = "Unable to fetch admin details";
     public static $errorResetPass = "Unable to reset admin password";
     public static $sendResetPassword = "Unable to send a new password";
     public static $resetPasswordMailSent = "New Password sent successfully";
+    public static $deleteSuperAdmin = "Super admin cannot be deleted";
+    public static $deleteAdmin = "Admin deleted successfully";
 
     // Status
     public static $statusChangedMessage = "Status changed successfully";
@@ -124,7 +140,7 @@ class APIUserResponse
 
     //Bank Account
     public static $addBankAccount = "Bank account added successfully";
-    
 
-    
+
+
 }

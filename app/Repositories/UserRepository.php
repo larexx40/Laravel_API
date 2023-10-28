@@ -7,14 +7,14 @@ use App\Models\User;
 
 class UserRepository implements UserRepositoryInterface {
 
-    public function getAllUsers() 
+    public function getAllUsers()
     {
         // return User::all();
         return User::orderBy('id', 'desc')->get();
-        
+
     }
 
-    public function getUserById($userid) 
+    public function getUserById($userid)
     {
         return User::where('userid', $userid)->first();
     }
@@ -33,18 +33,18 @@ class UserRepository implements UserRepositoryInterface {
     }
 
 
-    public function deleteUser($userid) 
+    public function deleteUser($userid)
     {
     //    return User::destroy($userid);
        return User::query()->where('userid', $userid)->delete();
     }
 
-    public function createUser(array $userDetails) 
+    public function createUser(array $userDetails)
     {
         return User::create($userDetails);
     }
 
-    public function updateUser($userid, array $newDetails) 
+    public function updateUser($userid, array $newDetails)
     {
         // return User::whereId($userid)->update($newDetails);
         return User::query()->where('userid', $userid)->update($newDetails);
@@ -69,5 +69,21 @@ class UserRepository implements UserRepositoryInterface {
             return User::where($column, $value)->select($whatToGet)->first();
         }
     }
-    
+
+    public function verifyUserEmail($userid)
+    {
+        return User::where('userid', $userid)->update(['is_email_verified' => 1]);
+    }
+
+    public function verifyUserPhone($phoneno){
+        return User::where('phoneno', $phoneno)->update(['is_phone_verified' => 1]);
+    }
+
+    public function setPin($userid, $pin)
+    {
+        return User::where('userid', $userid)->update(['pin'=>$pin]);
+    }
+
+
+
 }

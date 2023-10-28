@@ -279,6 +279,21 @@ class UtilityFunctions extends Helpers
         return $userKey;
     }
 
+    public static function generateUniqueNumericKey($tableName, $field, $strength){
+        $loop = 0;
+        while ($loop == 0){
+            $key = static::generateNumericKey($strength);
+            if ( static::checkIfCodeisInDB($tableName, $field ,$key) ){
+                $loop = 0;
+            }else {
+                $loop = 1;
+                break;
+            }
+        }
+
+        return $key;
+    }
+
     public function validatePhone( $value)
     {
         return preg_match('/^[0-9]{11}+$/', $value);
