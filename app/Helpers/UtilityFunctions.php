@@ -294,7 +294,7 @@ class UtilityFunctions extends Helpers
         return $key;
     }
 
-    public function validatePhone( $value)
+    public static function validatePhone( $value)
     {
         return preg_match('/^[0-9]{11}+$/', $value);
     }

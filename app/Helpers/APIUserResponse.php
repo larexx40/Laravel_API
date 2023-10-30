@@ -54,6 +54,7 @@ class APIUserResponse
     public static $imageTypeNotAllowed = "Image type not allowed";
     public static $unknownErrorImageUpload = "Unknown error occurred";
     public static $imageUploadFailed = "Error uploading image";
+    public static $imageUploadedSuccesful = "Image uploaded successful";
 
     // Signup
     public static $invalidPassword = "Invalid password";

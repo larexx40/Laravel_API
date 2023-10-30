@@ -13,6 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class OnboardingController extends BaseController
@@ -482,6 +483,73 @@ class OnboardingController extends BaseController
 
     }
 
+    public function uploadProfilePic(Request $request){
+        //upload image only
+        $input = $request->only(['image']);
+        $validator = Validator::make($input, [
+            // image input must be an image format
+                'image'=> 'required|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            ],
+            // $messages =[
+            //     'image' => 'Invalid image.',
+            // ]
+        );
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = 'https//:';
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+
+        try{
+            //check if its a valid image 
+
+
+        }catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+
+
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $input = $request->only(['image']);
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = 'https//:';
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+        try{
+            $uploadFolder = 'profiles';
+            $image = $request->file('image');
+            $image_uploaded_path = $image->store($uploadFolder, 'public/images');
+            // $uploadedImageResponse = array(
+            //     "image_name" => basename($image_uploaded_path),
+            //     "image_url" => Storage::disk('public')->u,
+            //     "mime" => $image->getClientMimeType()
+            // );
+            $mainData = [];
+            $text = APIUserResponse::$imageUploadedSuccesful;
+            return $this->respondOK($mainData, $text);
+
+        }catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+    }
 
 
 
