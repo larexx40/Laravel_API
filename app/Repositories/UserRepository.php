@@ -84,6 +84,15 @@ class UserRepository implements UserRepositoryInterface {
         return User::where('userid', $userid)->update(['pin'=>$pin]);
     }
 
+    public function setProfilePic($userid, $profilepic)
+    {
+        return User::where('', $userid)->update(['profile_pic'=>$profilepic]);
+    }
+
+    public function getRegSummary($userid){
+        return User::where('userid', $userid)->select("is_email_verified", "is_phone_verified", "profile_pic", "pin")->first();
+    }
+
 
 
 }

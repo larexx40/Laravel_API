@@ -20,4 +20,6 @@ interface UserRepositoryInterface
     public function updateUser($userid, array $newDetails);
     public function saveToUser($details);
     public function setPin($userid, $pin);
+    public function setProfilePic($usserid, $profilepic);
+    public function getRegSummary($usserid);
 }

@@ -32,8 +32,7 @@ class UserEmails extends Mailable
 
     public function emailVerificationEmail($otp)
     {
-        return $this->view('emails.email_verification_email')
-                    ->subject('Email Verification');
+        return $this->view('emails.email_verification_email', ['otp'=> $otp])->subject('Email Verification');
     }
 
     public function phoneVerificationEmail($otp)

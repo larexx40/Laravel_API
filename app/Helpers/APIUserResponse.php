@@ -39,7 +39,7 @@ class APIUserResponse
     public static $dbUpdatingError = "Error updating the database record";
     public static $nothingToUpdate = "Nothing to update";
     public static $deletingError = "Error deleting the database record";
-    public static $dbQueryError = "Error querying the database";
+    public static $dbQueryError = "Error fetching from the database";
     public static $dbOperationError = "Error performing database operation";
 
 
@@ -68,6 +68,7 @@ class APIUserResponse
     public static $registerFail = "Unable to register";
     public static $unauthorizedUser = "User not authorized";
     public static $unableToVerified = "Unable to verify mail";
+    public static $getRegSummary = "Registration Summary fetched";
 
     // Email verification
     public static $tokenExpired = "OTP Expired";
