@@ -28,10 +28,13 @@ class AdminRepository implements AdminInterface{
     public function getAdmin($column, $value){
         return Admin::where($column, $value)->first();
     }
-    public function getAdminData($column, $value, $whatToGet=''){
-        if(empty($whatToGet)) {
+
+    public function getAdminData($column, $value, $whatToGet=[]){
+        if (empty($whatToGet)) {
+            // If $whatToGet is not specified, get all columns
             return Admin::where($column, $value)->first();
         }
-        return Admin::where($column, $value)->$whatToGet();
+        // If $whatToGet is specified, fetch only those columns
+        return Admin::where($column, $value)->select($whatToGet)->first();
     }
 }

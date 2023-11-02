@@ -1,6 +1,8 @@
 <?php
 namespace App\Utilities;
 
+use App\Config\APIErrorCode;
+use App\Config\APIUserResponse;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -64,7 +66,7 @@ class UtilityFunctions extends Helpers
 
         return $input;
     }
-    
+
 
     public static function getCurrentFullURL()
     {
@@ -143,7 +145,7 @@ class UtilityFunctions extends Helpers
             $random_character = $input[mt_rand(0, $input_length - 1)];
             $random_string .= $random_character;
         }
-    
+
         return $random_string;
     }
 
@@ -164,7 +166,7 @@ class UtilityFunctions extends Helpers
         // $country  = ($json['country']) ?  $json['country'] : "";
         // $region   = ($json['region']) ? $json['region'] : "";
         // $city     = ($json['city']) ? $json['city'] : "";
-        
+
         if (array_key_exists('loc', $json) ){
             $location = ($json['loc']) ? $json['loc'] : "";
 
@@ -235,7 +237,7 @@ class UtilityFunctions extends Helpers
     public static function generateUniquePubKey($tableName, $field)
     {
         $loop = 0;
-        
+
         while ($loop == 0) {
             $userKey = "USDTAFR" . static::generatePubKey(37) . $tableName;
 
@@ -256,7 +258,7 @@ class UtilityFunctions extends Helpers
 
         return $output;
     }
-    
+
 
     public static function generateNumericKey($strength){
         $input = "01234567890987654321";
@@ -380,27 +382,43 @@ class UtilityFunctions extends Helpers
         return Carbon::createFromTimestamp($time)->format('Y-m-d');
     }
 
-    public static function uploadImage($file, $path)
+    public static function uploadImage($image, $path)
     {
-        if ($file->isValid()) {
-            $img_ex_lc = strtolower($file->getClientOriginalExtension());
-            $allowed_exs = ['jpg', 'jpeg', 'svg', 'png', 'gif', 'webp', 'jiff'];
+        // Check the size of the image
+        $imageSize = $image->getSize(); // Size in bytes
 
-            if (in_array($img_ex_lc, $allowed_exs)) {
-                $new_img_name = uniqid("CNG-IMG-", true) . '.' . $img_ex_lc;
-
-                // Store the image in the specified path
-                Storage::putFileAs($path, $file, $new_img_name);
-
-                return $new_img_name;
-            } else {
-                // Handle unsupported image types
-                // You can return an error response or throw an exception
-            }
-        } else {
-            // Handle file upload errors
-            // You can return an error response or throw an exception
+        // Check if the image size is within your desired limit
+        $maxSizeInBytes = 2048 * 1024; // 2 MB (adjust this as needed)
+        if ($imageSize > $maxSizeInBytes) {
+            //image is too large
+            $text = APIUserResponse::$imageTooLarge;
+            $mainData= [];
+            $hint = ["Image size should not be less than 2MB"];
+            $linktosolve = 'https//:';
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return self::respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
         }
+
+        $img_ex_lc = strtolower($image->getClientOriginalExtension());
+        $allowed_exs = ['jpg', 'jpeg', 'svg', 'png', 'gif', 'webp', 'jiff'];
+
+        //check image size
+        if (!in_array($img_ex_lc, $allowed_exs)) {
+            $text = APIUserResponse::$imageTypeNotAllowed;
+            $mainData= [];
+            $hint = ["Image size should not be less than 2MB"];
+            $linktosolve = 'https//:';
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return self::respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
+        }
+
+        $new_img_name = uniqid("CNG-IMG-", true) . '.' . $img_ex_lc;
+        // Store the image in the specified path
+        $path = "public/images/". $path;
+        $imagePath =  $image->storeAs('public/images/profiles', $new_img_name);
+        // Storage::putFileAs($path, $file, $new_img_name);
+
+        return $new_img_name;
     }
 
     public static function deleteImage($path, $file_name)
@@ -453,5 +471,31 @@ class UtilityFunctions extends Helpers
             return $output;
         }
     }
+
+    public static function respondBadRequest($maindata, $text, $hint, $linktosolve, $errorcode)
+    {
+        $method = request()->method();
+        $endpoint = request()->fullUrl();
+
+        $errordata = [
+            "code" => $errorcode,
+            "text" => "Data sent by the user is not valid",
+            "link" => $linktosolve,
+            "hint" => $hint,
+        ];
+
+        $data = [
+            "status" => false,
+            "text" => $text,
+            "data" => $maindata,
+            "time" => now()->format('d-m-y H:i:sA'),
+            "method" => $method,
+            "endpoint" => $endpoint,
+            "error" => $errordata,
+        ];
+
+        return response()->json($data, 400, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
 
 }

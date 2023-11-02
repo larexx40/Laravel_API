@@ -12,29 +12,6 @@ use Illuminate\Support\Facades\Request;
 class BaseController extends Controller
 {
     //for success and error response
-    public function sendSuccessResponse($result, $message)
-    {
-    	$response = [
-            'success' => true,
-            'data'    => $result,
-            'message' => $message,
-        ];
-        return response()->json($response, 200);
-    }
-
-    public function sendError($error, $errorMessages = [], $code = 400)
-    {
-    	$response = [
-            'success' => false,
-            'message' => $error,
-        ];
-
-        if(!empty($errorMessages)){
-            $response['data'] = $errorMessages;
-        }
-        
-        return response()->json($response, $code);
-    }
 
     public function respondMethodNotAllowed($maindata, $text, $hint, $linktosolve, $errorcode)
     {
@@ -50,7 +27,7 @@ class BaseController extends Controller
             "endpoint" => $endpoint,
             "error" => $errordata
         ];
-    
+
         return Response::json($data, 405)->header('Content-Type', 'application/json');
     }
 

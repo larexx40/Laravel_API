@@ -8,10 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Interfaces\UserRepositoryInterface;
 use App\Interfaces\UserTokenInterface;
 use App\Mail\UserEmails;
+use App\Services\SmsServices;
 use App\Utilities\UtilityFunctions;
+use App\Utilities\ExternalCalls;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -21,9 +24,11 @@ class OnboardingController extends BaseController
     //
     private UserRepositoryInterface $userRepository;
     private UserTokenInterface $userTokenRepository;
-    public function __construct(UserRepositoryInterface $userRepository, UserTokenInterface $userTokenRepository){
+    private SmsServices $smsService;
+    public function __construct(UserRepositoryInterface $userRepository, UserTokenInterface $userTokenRepository, SmsServices $smsService){
         $this->userRepository = $userRepository;
         $this->userTokenRepository = $userTokenRepository;
+        $this->smsService = $smsService;
     }
 
     public function registerEmail(Request $request){
@@ -31,10 +36,10 @@ class OnboardingController extends BaseController
             "email",
         );
         $validator = Validator::make($input, [
-                'email' => 'required|string|email|exists:users,email',
+                'email' => 'required|string|email|unique:users,email',
             ],
             $messages =[
-                'email.exists' => 'Email does not exist.',
+                'email.unique' => 'Email already exists.',
             ]
         );
 
@@ -48,18 +53,21 @@ class OnboardingController extends BaseController
         }
 
         try {
-            //create new user
-            $input['userid'] = UtilityFunctions::generateUniqueShortKey("users", "userid");
-            $input['userpubkey'] = UtilityFunctions::generateUniquePubKey("users", "userpubkey");
+            //check if email exist
+            $isExist = $this->userRepository->checkIfUserExist("email", $input['email']);
+            if($isExist){
+                $text = APIUserResponse::$emailExist;
+                $mainData= [];
+                $hint = ['There is a user with email in DB' ,"Ensure to use the method stated in the documentation."];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
 
-            $newUser = $this->userRepository->createUser($input);
-            //send welcome email
             //create otp
             $otp = UtilityFunctions::generateUniqueNumericKey("user_tokens", "token", 4);
-
             // create verification token details
             $tokenDetails = [
-                'userid' => $input['userid'],
                 'user_identity' => $input['email'],
                 'identity_type' => 1, //1-Email 2-Phone
                 'token' => $otp,
@@ -68,7 +76,11 @@ class OnboardingController extends BaseController
             ];
             //add token to db
             $this->userTokenRepository->addUserToken($tokenDetails);
-            Mail::to($input['email'])->queue((new UserEmails($input))->emailVerificationEmail($input['token']));
+            $user = (object) [
+                'name' => "Olanrewaju",
+                'email' => $input['email'],
+            ];
+            Mail::to($input['email'])->queue((new UserEmails($user))->emailVerificationEmail($otp));
 
             $mainData = [];
             $text = APIUserResponse::$OTPSentViaMail;
@@ -89,11 +101,11 @@ class OnboardingController extends BaseController
         );
 
         $validator = Validator::make($input, [
-                'email' => 'required|string|email|exists:users,email',
                 'otp' => 'required|string|max:4',
+                'email' => 'required|string|email|unique:users,email',
             ],
             $messages =[
-                'email.exists' => 'Email does not exist.',
+                'email.unique' => 'Email already exists.',
             ]
         );
 
@@ -108,7 +120,7 @@ class OnboardingController extends BaseController
 
         try {
             //verify otp
-            $token = $this->userTokenRepository->getTokenByToken($input['token']);
+            $token = $this->userTokenRepository->getTokenByToken($input['otp']);
             if(!$token){
                $text = APIUserResponse::$invalidOTP;
                $mainData= [];
@@ -145,24 +157,8 @@ class OnboardingController extends BaseController
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
 
-            //verify user email
-            $user = $this->userRepository->verifyUserEmail($token['userid']);
-            if(!$user){
-                $text = APIUserResponse::$unableToVerifyMail;
-                $mainData= [];
-                $hint = ["DB server Error","Ensure to use the method stated in the documentation."];
-                $linktosolve = "https://";
-                $errorCode = APIErrorCode::$internalUserWarning;
-                return $this->respondInternalError($mainData, $text, $hint, $linktosolve, $errorCode);
-            }
-
-            //authenticate user
-            $token = Auth::login($user);
             $text = APIUserResponse::$successEmail;
-            $mainData = [
-                'token' => $token,
-                'type' => 'bearer',
-            ];
+            $mainData = [];
             return $this->respondOK($mainData, $text);
 
         }catch(QueryException $e){
@@ -177,10 +173,11 @@ class OnboardingController extends BaseController
             "phoneno",
         );
         $validator = Validator::make($input, [
-                "phoneno"=> "required|regex:/^\+?[0-9]\d{1,20}$/",
+                "phoneno"=> "required|unique:users,phoneno|regex:/^\+?[0-9]\d{1,20}$/",
             ],
             $messages =[
                 "phoneno.regex"=> "Invalid phone number",
+                "phoneno.unique"=>"Phone number already exist"
             ]
         );
 
@@ -195,16 +192,21 @@ class OnboardingController extends BaseController
 
         try {
 
-            $userid = Auth::user()->userid;
-            //update user in db
-            $newUserDetails = $this->userRepository->updateUser($userid, $input);
+            $isExist = $this->userRepository->checkIfUserExist('phoneno', $input['phoneno']);
+            if($isExist){
+                $text = APIUserResponse::$phoneExist;
+                $mainData= [];
+                $hint = ['There is a user with phone number in DB' ,"Ensure to use the method stated in the documentation."];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
             //send welcome email
             //create otp
             $otp = UtilityFunctions::generateUniqueNumericKey("user_tokens", "token", 4);
 
             // create verification token details
             $tokenDetails = [
-                'userid' => $userid,
                 'user_identity' => $input['phoneno'],
                 'identity_type' => 2, //1-Email 2-Phone
                 'token' => $otp,
@@ -214,11 +216,22 @@ class OnboardingController extends BaseController
             //add token to db
             $this->userTokenRepository->addUserToken($tokenDetails);
 
-            //change to sms
-            Mail::to($input['email'])->queue((new UserEmails($input))->emailVerificationEmail($input['token']));
+            //send sms otp to user phone
+            $smsTemplate = Config::get('sms_template.phone_verify_otp');
+            if (!$smsTemplate) {
+                $text = APIUserResponse::$emailExist;
+                $mainData= [];
+                $hint = ['Unable to send sms' ,"Ensure to use the method stated in the documentation."];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondInternalError($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
+            $message = str_replace("{code}", $otp, $smsTemplate);
+            $sendMessage = $this->smsService->sendSMSWithTermi($input['phoneno'], $message);
+
 
             $mainData = [];
-            $text = APIUserResponse::$forgotPasswordOTP;
+            $text = APIUserResponse::$OTPSentViaSMS;
             return $this->respondOK($mainData, $text);
 
 
@@ -255,7 +268,7 @@ class OnboardingController extends BaseController
 
         try {
             //verify otp
-            $token = $this->userTokenRepository->getTokenByToken($input['token']);
+            $token = $this->userTokenRepository->getTokenByToken($input['otp']);
             if(!$token){
                $text = APIUserResponse::$invalidOTP;
                $mainData= [];
@@ -265,7 +278,8 @@ class OnboardingController extends BaseController
                return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
 
-            if($token['token_type'] != 2){
+            //verify
+            if($token['token_type'] != 1){
                 $text = APIUserResponse::$invalidOTP;
                 $mainData= [];
                 $hint = ["check your phone SMS for 4 digit OTP","Ensure to use the method stated in the documentation."];
@@ -291,20 +305,6 @@ class OnboardingController extends BaseController
                 $errorCode = APIErrorCode::$internalUserWarning;
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
-
-            //verify user email
-            $user = $this->userRepository->verifyUserPhone($input['phoneno']);
-            if(!$user){
-                $text = APIUserResponse::$unableToVerifyPhone;
-                $mainData= [];
-                $hint = ["DB server Error","Ensure to use the method stated in the documentation."];
-                $linktosolve = "https://";
-                $errorCode = APIErrorCode::$internalUserWarning;
-                return $this->respondInternalError($mainData, $text, $hint, $linktosolve, $errorCode);
-            }
-
-            //authenticate user
-            // $token = Auth::login($user);
             $text = APIUserResponse::$successPhoneVerify;
             $mainData = [];
             return $this->respondOK($mainData, $text);
@@ -356,7 +356,6 @@ class OnboardingController extends BaseController
 
             // create verification token details
             $tokenDetails = [
-                'userid' => $user['userid'],
                 'user_identity' => $input['email'],
                 'identity_type' => 1, //1-Email 2-Phone
                 'token' => $otp,
@@ -366,7 +365,7 @@ class OnboardingController extends BaseController
 
             //add token to db
             $this->userTokenRepository->addUserToken($tokenDetails);
-            Mail::to($input['email'])->queue((new UserEmails($input))->emailVerificationEmail($input['token']));
+            Mail::to($input['email'])->queue((new UserEmails($input))->emailVerificationEmail($otp));
 
             $mainData = [];
             $text = APIUserResponse::$OTPSentViaMail;
@@ -421,7 +420,6 @@ class OnboardingController extends BaseController
 
             // create verification token details
             $tokenDetails = [
-                'userid' => $user['userid'],
                 'user_identity' => $input['phoneno'],
                 'identity_type' => 2, //1-Email 2-Phone
                 'token' => $otp,
@@ -431,7 +429,19 @@ class OnboardingController extends BaseController
 
             //add token to db
             $this->userTokenRepository->addUserToken($tokenDetails);
-            Mail::to($input['email'])->queue((new UserEmails($input))->emailVerificationEmail($input['token']));
+
+            //send sms otp to user phone
+            $smsTemplate = Config::get('sms_template.phone_verify_otp');
+            if (!$smsTemplate) {
+                $text = APIUserResponse::$emailExist;
+                $mainData= [];
+                $hint = ['Unable to send sms' ,"Ensure to use the method stated in the documentation."];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondInternalError($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
+            $message = str_replace("{code}", $otp, $smsTemplate);
+            $sendMessage = $this->smsService->sendSMSWithTermi($input['phoneno'], $message);
 
             $mainData = [];
             $text = APIUserResponse::$forgotPasswordOTP;
@@ -504,7 +514,34 @@ class OnboardingController extends BaseController
         }
 
         try{
-            //check if its a valid image 
+            //check if request is not an image
+            $image = $request->file('image');
+            if (!$image->isValid()) {
+                $text = APIUserResponse::$invalidImageSent;
+                $mainData= [];
+                $hint = $validator->errors()->all();
+                $linktosolve = 'https//:';
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
+            $imageName = uniqid("USDAF-IMG-", true) . '.' . $image->getClientOriginalExtension();
+            $imagePath =  $image->storeAs('public/images/profiles', $imageName);
+            // Get the URL of the uploaded image
+            // $imageUrl = asset('storage/' . $imagePath);
+            $url = Storage::url($imagePath);
+            $imageUrl = asset('storage/images/profiles/' . $imageName);
+
+            //save imagename to db
+
+
+            $mainData = [
+                "image_name" => $imagePath,
+                "image_url" => $imageUrl,
+                "url"=> $url,
+            ];
+            $text = APIUserResponse::$imageUploadedSuccesful;
+            return $this->respondOK($mainData, $text);
+
 
 
         }catch(QueryException $e){
@@ -516,34 +553,103 @@ class OnboardingController extends BaseController
 
     }
 
-    public function uploadImage(Request $request)
-    {
-        $input = $request->only(['image']);
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image:jpeg,png,jpg,gif,svg|max:2048'
-        ]);
+    public function register(Request $request){
+        $input = $request->only(
+            "fname",
+            "lname",
+            "email",
+            "phoneno",
+            "username",
+            'pin',
+            "password",
+            "accountno",
+            'system_bank_code',
+            'account_name',
+            'sex',
+        );
+
+        // Validate the request data using the rules specified in UserRequest
+        $validator = Validator::make($input, [
+                "fname" => "required",
+                'email' => 'required|string|email|unique:users,email',
+                'password' => 'required|string|min:6|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+                'phoneno' => [ 'string', 'regex:/^[0-9]{11}$/'],
+                'dob' => ['date', 'before:today'],
+                'sex' => 'required|in:male,female',
+                'pin' => 'required|integer|between:0000,9999',
+                "lname" => "required",
+                "username" => "required",
+                "phoneno" => "required",
+            ],
+            $messages =[
+                'email.unique' => 'Email already exists.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (#?!@$%^&*-).',
+                'phoneno.regex' => 'The phone number must be 11 digits in length and contain only numbers.',
+                'pin.between' => 'Invalid pin.',
+            ]
+        );
 
         if ($validator->fails()) {
             $text = APIUserResponse::$respondValidationError;
             $mainData= [];
             $hint = $validator->errors()->all();
-            $linktosolve = 'https//:';
+            $linktosolve = "https://";
             $errorCode = APIErrorCode::$internalUserWarning;
             return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
         }
-        try{
-            $uploadFolder = 'profiles';
-            $image = $request->file('image');
-            $image_uploaded_path = $image->store($uploadFolder, 'public/images');
-            // $uploadedImageResponse = array(
-            //     "image_name" => basename($image_uploaded_path),
-            //     "image_url" => Storage::disk('public')->u,
-            //     "mime" => $image->getClientMimeType()
-            // );
-            $mainData = [];
-            $text = APIUserResponse::$imageUploadedSuccesful;
+
+        //bycrypt the password
+        $input['password'] = bcrypt($input['password']);
+        $input['pin']= bcrypt($input['pin']);
+        //generate unique userid for user
+        $input['userid'] = UtilityFunctions::generateUniqueShortKey("users", "userid");
+        $input['userpubkey'] = UtilityFunctions::generateUniquePubKey("users", "userpubkey");
+        $input['is_email_verified'] =1;
+        $input['is_phone_verified'] = 1;
+
+        try {
+            $newUser = $this->userRepository->createUser($input);
+            $token = Auth::login($newUser);
+            $text = APIUserResponse::$registerSuccess;
+            $mainData = [
+                'token' => $token,
+                'type' => 'bearer',
+            ];
             return $this->respondOK($mainData, $text);
 
+        }catch(QueryException $e){
+            $errorInfo = $e->errorInfo;
+            $text = APIUserResponse::$dbInsertError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalInsertDBFatal;
+            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+
+        } catch (\Exception $e) {
+            $errorInfo = $e->getMessage();
+            $text = APIUserResponse::$dbInsertError;
+            $mainData= [];
+            $hint = ["Ensure to use the method stated in the documentation."];
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalInsertDBFatal;
+            return $this->respondInternalError($text, $mainData, $errorInfo, $linktosolve, $errorCode);
+        }
+
+    }
+
+    public function getRegSummary(Request $request){
+        try{
+            $userid = Auth::user()->userid;
+            $regDetails = $this->userRepository->getRegSummary($userid);
+            $regDetails['pin'] = empty($regDetails['pin']) ? false : true;
+            $regDetails['profile_pic'] = empty($regDetails['profile_pic']) ? false : true;
+            $regDetails['is_email_verified'] = $regDetails['is_email_verified'] == 1 ? true : false;
+            $regDetails['is_phone_verified'] = $regDetails['is_phone_verified'] == 1 ? true : false;
+
+            $text = APIUserResponse::$getRegSummary;
+            $mainData = $regDetails;
+            return $this->respondOK($mainData, $text);
         }catch(QueryException $e){
             return $this->handleQueryException($e);
         }catch(\Exception $e){
