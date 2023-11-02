@@ -552,7 +552,6 @@ class OnboardingController extends BaseController
     }
 
 
-
     protected function handleException(\Exception $e)
     {
         $errorInfo = $e->getMessage();
