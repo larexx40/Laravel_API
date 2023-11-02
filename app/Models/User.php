@@ -75,6 +75,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(UserBankAccount::class);
     }
 
+    public function userWallets()
+    {
+        return $this->hasMany(UserWallet::class);
+    }
+
      /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *

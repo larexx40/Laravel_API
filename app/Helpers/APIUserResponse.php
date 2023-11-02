@@ -142,6 +142,9 @@ class APIUserResponse
 
     //Bank Account
     public static $addBankAccount = "Bank account added successfully";
+    public static $updateBankAccount = "Bank account updated successfully";
+    public static $invalidBankId = "Invalid bank id";
+    public static $deleteBank = "Bank deleted successfully";
 
 
 
