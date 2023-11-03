@@ -22,7 +22,7 @@ class AdminJWTMiddleware
                 $text = APIUserResponse::$unauthorizedToken;
                 $errorcode = APIErrorCode::$internalUserWarning;
                 $linktosolve = "https://";
-                $hint = ["Authorization header must be sent with the correct format","Check if all header values are sent correctly.", "Login to generate anotherauthorization header"];
+                $hint = ["Only authenticated admin can access this route","Authorization header must be sent with the correct format","Check if all header values are sent correctly.", "Login to generate anotherauthorization header"];
 
                 return $this->respondUnauthorized($maindata, $text, $hint, $linktosolve, $errorcode);
             }

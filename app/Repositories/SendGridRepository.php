@@ -16,7 +16,7 @@ class SendGridReepository implements SendGridInterface{
     public function getAllSendGrid(){
         return SendGridApiDetails::all();
     }
-    public function acrivateSendGrid($id){
+    public function activateSendGrid($id){
         // set every status to 0
         SendGridApiDetails::where('status', 1)->update(['status' => 0]);
         return SendGridApiDetails::where('id', $id)->update(['status' => 1]);
@@ -35,5 +35,9 @@ class SendGridReepository implements SendGridInterface{
             return SendGridApiDetails::where($column, $value)->first();
         }
         return SendGridApiDetails::where($column, $value)->$whatToGet();
+    }
+
+    public function checkIfExist($id){
+        return SendGridApiDetails::where("id", $id)->exists();
     }
 }

@@ -158,5 +158,12 @@ class APIUserResponse
     public static $invalidWalletid = "Invalid wallet id";
     public static $walletDeleted = "User wallet deleted";
 
+    //trnsactions
+    public static $newTransactionError = "Unable to create transaction";
+    public static $invalidTransactionid = "Invalid transaction id";
+    public static $insufficientUserBalance = "Insufficient user balance";
+    public static $newTransaction = "Transaction successful";
+
+
 
 }
