@@ -40,4 +40,8 @@ class UserWalletRepository implements UserWalletInterface{
         // If $whatToGet is specified, fetch only those columns
         return UserWallet::where($column, $value)->select($whatToGet)->first();
     }
+
+    public function checkIfExist($column, $value,){
+        return UserWallet::where($column, $value)->exists();
+    }
 }

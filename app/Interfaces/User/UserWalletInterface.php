@@ -11,5 +11,6 @@ Interface UserWalletInterface{
     public function getUserWalletByid($walletid);
     public function deleteUserWallet($walletid);
     public function getWalletData($column, $value, $whatToGet='');
+    public function checkIfExist($column, $value,);
 
 }

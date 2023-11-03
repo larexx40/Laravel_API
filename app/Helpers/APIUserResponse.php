@@ -113,6 +113,7 @@ class APIUserResponse
     public static $emailAlreadyVerified = "Email already verified";
     public static $invalidUserIdentity = "User with account not found";
     public static $invalidUserType = "Invalid user type";
+    public static $invalidUserid = "Invalid user id";
     public static $getRequestFetched = "Request Fetched";
     public static $getRequestNoRecords = "No Records Found";
 
@@ -146,6 +147,16 @@ class APIUserResponse
     public static $invalidBankId = "Invalid bank id";
     public static $deleteBank = "Bank deleted successfully";
 
+    //Currency System
+    public static $addCurrencySystem = "Currency system added successfully";
+    public static $updateCurrencySystem = "Currency system updated successfully";
+    public static $invalidCurrencyId = "Invalid currency system id";
+    public static $deleteCurrencySystem = "Currency system deleted successfully";
+
+    //Wallet
+    public static $newWalletAdded = "New wallet created";
+    public static $invalidWalletid = "Invalid wallet id";
+    public static $walletDeleted = "User wallet deleted";
 
 
 }

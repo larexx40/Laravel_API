@@ -5,32 +5,32 @@ namespace App\Http\Controllers;
 use App\Config\APIErrorCode;
 use App\Config\APIUserResponse;
 use App\Http\Controllers\Controller;
-use App\Interfaces\BankAllowedInterface;
+use App\Interfaces\CurrencySystemInterface;
 use App\Utilities\UtilityFunctions;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class BankAllowedController extends BaseController
+class CurrencySystemController extends BaseController
 {
 
-    private BankAllowedInterface $bankAllowedRepository;
-    public function __construct(BankAllowedInterface $bankAllowedRepository){
-        $this->bankAllowedRepository = $bankAllowedRepository;
+    private CurrencySystemInterface $currencySystemRepository;
+    public function __construct(CurrencySystemInterface $currencySystemRepository){
+        $this->currencySystemRepository = $currencySystemRepository;
     }
     /**
      * Display a listing of the resource.
      */
-    public function getAllBanks()
+    public function getAllCurrencySystem()
     {
         //
         try{
-            $banks =  $this->bankAllowedRepository->getAllBanks();
-            $text = (count($banks) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
-            $banks['status_value'] = $banks['status'] == 1 ? "Active" : "Inactive";
-            unset($banks['updated_at']);
-            return $this->respondOK($banks, $text);
+            $currencySystem =  $this->currencySystemRepository->getAllCurrencySystem();
+            $text = (count($currencySystem) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
+            $currencySystem['currency_status_value'] = $currencySystem['status'] == 1 ? "Active" : "Inactive";
+            unset($currencySystem['updated_at']);
+            return $this->respondOK($currencySystem, $text);
         }catch(QueryException $e){
             return $this->handleQueryException($e);
         }catch(\Exception $e){
@@ -41,20 +41,21 @@ class BankAllowedController extends BaseController
 
     /**
      * Show the form for creating a new resource.
+     *   `name` varchar(1000) NOT NULL,
      */
-    public function addBank(Request $request)
+    public function addCurrencySytem(Request $request)
     {
-        //name	image_link	sysbankcode	paystackbankcode	monifybankcode	shbankcodes
         $input = $request->only([
-            'name', 'image_link', 'paystackbankcode', 'monifybankcode',"shbankcodes"
+            'name', 'sign', 'sidebarname',"imglink", "maxsendamtauto", 'nametag'
         ]);
         //validate input
         $validator = Validator::make($input, [
-                'name' => 'required',
+                'name' => 'required|string',
+                'nametag'=>'required|string',
                 'image_link' => 'required|url',
-                'paystackbankcode' => 'required|string',
-                'monifybankcode' => 'required|string',
-                'shbankcodes'=> 'required|string'
+                'sign' => 'required|string',
+                'sidebarname'=> 'required|string',
+                "maxsendamtauto"=> 'required|decimal'
             ]
         );
 
@@ -68,9 +69,13 @@ class BankAllowedController extends BaseController
         };
 
         try {
-            $input['sysbankcode']= UtilityFunctions::generateUniqueShortKey("bank_alloweds", "sysbankcode");
-            $newBank = $this->bankAllowedRepository->addNewBank($input);
-            $text = APIUserResponse::$addBankAccount;
+            $input['currencytag']= UtilityFunctions::generateUniqueShortKey("currencysystems", "currencytag");
+            $input['currency_status'] =0;
+            $input['activatesend'] =0;
+            $input['activatereceive'] =0;
+            $input['defaultforusers'] =0;
+            $new = $this->currencySystemRepository->addCurrencySystem($input);
+            $text = APIUserResponse::$addCurrencySystem;
             $mainData = [];
             return $this->respondOK($mainData, $text);
 
@@ -88,23 +93,24 @@ class BankAllowedController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function updateBank(Request $request)
+    public function updateCurrencySystem(Request $request)
     {
         //
         $input = $request->only([
-            'name', 'image_link', 'sysbankcode', 'paystackbankcode', 'monifybankcode',"shbankcodes"
+            'name', 'sign', 'sidebarname',"imglink", "maxsendamtauto", 'nametag'
         ]);
         //validate input
         $validator = Validator::make($input, [
-                'name' => 'required',
+                'name' => 'required|string',
+                'nametag'=>'required|string',
                 'image_link' => 'required|url',
-                'paystackbankcode' => 'required|string',
-                'monifybankcode' => 'required|string',
-                'shbankcodes'=> 'required|string',
-                "sysbankcode"=> "required|exist:bank_alloweds,sysbankcode"
+                'sign' => 'required|string',
+                'sidebarname'=> 'required|string',
+                "maxsendamtauto"=> 'required|decimal',
+                'curencytag'=>'required|string|exists:currencysystems,curencytag',
             ],
             $messages =[
-                'sysbankcode.exist' => 'Bank code id not found.',
+                'curencytag.exists' => 'Currncy system with id does not exist.',
             ]
         );
 
@@ -118,8 +124,8 @@ class BankAllowedController extends BaseController
         }
 
         try {
-            $newAdmin = $this->bankAllowedRepository->updateBank($input);
-            $text = APIUserResponse::$updateBankAccount;
+            $new = $this->currencySystemRepository->updateCurrencySystem($input);
+            $text = APIUserResponse::$updateCurrencySystem;
             $mainData = [];
             return $this->respondOK($mainData, $text);
 
@@ -132,7 +138,7 @@ class BankAllowedController extends BaseController
 
     }
 
-    public function changeBankStatus(Request $request)
+    public function changeCurrencySystemStatus(Request $request)
     {
         //
         $input = $request->only([
@@ -140,11 +146,11 @@ class BankAllowedController extends BaseController
         ]);
         //validate input
         $validator = Validator::make($input, [
-                "sysbankcode"=> "required|exist:bank_alloweds,sysbankcode",
                 'status' => 'required|in:1,0',
+                'curencytag'=>'required|string|exists:currencysystems,curencytag',
             ],
             $messages =[
-                'sysbankcode.exist' => 'Bank code id not found.',
+                'curencytag.exists' => 'Currncy system with id does not exist.',
                 'status.in'=>"Stantus can only be 1 or 0"
             ]
         );
@@ -160,19 +166,19 @@ class BankAllowedController extends BaseController
 
         try {
 
-            $bankid = $input['sysbankcode'];
+            $curencytag = $input['curencytag'];
             $status = $input['status'];
-            $bank = $this->bankAllowedRepository->getBankData("sysbankcode", $bankid, ["sysbankcode", "name"]);
-            if(empty($bank)){
+            $currncySystem = $this->currencySystemRepository->getCurrencySystemData("curencytag", $curencytag, ["curencytag", "name"]);
+            if(empty($currncySystem)){
                 // admin not found
-                $text = APIUserResponse::$invalidBankId;
+                $text = APIUserResponse::$invalidCurrencyId;
                 $mainData= [];
-                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid bank id.'];
+                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid currency id.'];
                 $linktosolve = "https://";
                 $errorCode = APIErrorCode::$internalUserWarning;
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
-            $newAdmin = $this->bankAllowedRepository->changeBankStatus($bankid, $status);
+            $newcurrency = $this->currencySystemRepository->changeCurrencySystemStatus($curencytag, $status);
             $text = APIUserResponse::$statusChangedMessage;
             $mainData = [];
             return $this->respondOK($mainData, $text);
@@ -189,23 +195,23 @@ class BankAllowedController extends BaseController
     /**
      * Show the form for editing the specified resource.
      */
-    public function deleteBank(String $bankid)
+    public function deleteCurrencySystem(String $curencytag)
     {
         // find admin by adminid
         try {
-            $bank = $this->bankAllowedRepository->getBankData("sysbankcode", $bankid, ["sysbankcode", "name"]);
-            if(empty($bank)){
+            $currencySystem = $this->currencySystemRepository->getCurrencySystemData("curencytag", $curencytag, ["curencytag", "name"]);
+            if(empty($currencySystem)){
                 // admin not found
-                $text = APIUserResponse::$invalidBankId;
+                $text = APIUserResponse::$invalidCurrencyId;
                 $mainData= [];
-                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid bank id.'];
+                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid currency system id.'];
                 $linktosolve = "https://";
                 $errorCode = APIErrorCode::$internalUserWarning;
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
             //delete admin
-            $delete = $this->bankAllowedRepository->deleteBank($bankid);
-            $text = APIUserResponse::$deleteBank ;
+            $delete = $this->currencySystemRepository->deleteCurrencySystem($curencytag);
+            $text = APIUserResponse::$deleteCurrencySystem;
             $mainData= [];
             return $this->respondOK($mainData, $text);
 
