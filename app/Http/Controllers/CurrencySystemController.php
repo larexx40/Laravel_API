@@ -27,9 +27,22 @@ class CurrencySystemController extends BaseController
         //
         try{
             $currencySystem =  $this->currencySystemRepository->getAllCurrencySystem();
-            $text = (count($currencySystem) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
-            $currencySystem['currency_status_value'] = $currencySystem['status'] == 1 ? "Active" : "Inactive";
-            unset($currencySystem['updated_at']);
+            $text = (count($currencySystem) > 0)? APIUserResponse::$getRequestFetched : APIUserResponse::$getRequestNoRecords;
+            return $this->respondOK($currencySystem, $text);
+        }catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+
+    }
+
+    public function getCurrencySystemByid(String $currencytag)
+    {
+        //
+        try{
+            $currencySystem =  $this->currencySystemRepository->getCurrencySystemByid($currencytag);
+            $text = (count($currencySystem) > 0)? APIUserResponse::$getRequestFetched : APIUserResponse::$getRequestNoRecords;
             return $this->respondOK($currencySystem, $text);
         }catch(QueryException $e){
             return $this->handleQueryException($e);

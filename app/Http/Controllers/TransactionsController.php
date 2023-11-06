@@ -75,7 +75,7 @@ class TransactionsController extends BaseController
                 $transactions = $this->userTransactionRepository->getAllTransactions();
             }
 
-            $text = (count($transactions) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
+            $text = (count($transactions) > 0)? APIUserResponse::$getRequestFetched : APIUserResponse::$getRequestNoRecords;
             return $this->respondOK($transactions, $text);
         } catch(QueryException $e){
             return $this->handleQueryException($e);
