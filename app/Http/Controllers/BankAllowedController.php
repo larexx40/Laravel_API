@@ -22,14 +22,15 @@ class BankAllowedController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function getAllBanks()
+    public function getAllBanks(Request $request)
     {
-        //
+        // filter, search and pagination
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        $filter = $request->input('filter');
         try{
-            $banks =  $this->bankAllowedRepository->getAllBanks();
-            $text = (count($banks) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
-            $banks['status_value'] = $banks['status'] == 1 ? "Active" : "Inactive";
-            unset($banks['updated_at']);
+            $banks =  $this->bankAllowedRepository->getAllBanks($perPage, $search, $filter);
+            $text = (count($banks) > 0)? APIUserResponse::$getRequestFetched : APIUserResponse::$getRequestNoRecords;;
             return $this->respondOK($banks, $text);
         }catch(QueryException $e){
             return $this->handleQueryException($e);

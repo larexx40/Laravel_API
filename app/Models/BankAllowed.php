@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,5 +19,13 @@ class BankAllowed extends Model
         "shbankcode",
         "status",
     ];
+
+    protected $dates = ['created_at','updated_at'];
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        //return Carbon::createFromFormat('Y-m-d H:i:s', $dates)->diffForHumans();
+        // OR
+        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('Y-m-d');
+    }
 
 }

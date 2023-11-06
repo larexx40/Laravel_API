@@ -10,8 +10,22 @@ class UserBankRepository implements UserBankInterface{
         return UserBankAccount::all();
     }
     public function getUserBankByUserid($userid){
-        $userBankAccount = UserBankAccount::where('user_id', $userid)->orderBy('id', 'desc')->get();
-        return $userBankAccount;
+        // cast it with the relationship declared in model
+        $userBankAccounts = UserBankAccount::with('bankAllowed')->where('user_id', $userid)->orderBy('id', 'desc')->get();
+
+        $userBankAccounts->each(function ($bankAccount) {
+            // Access the related banlAllowed information
+            $bankName = $bankAccount->bankAllowed->name;
+        
+            // Set the values directly in the bankAccount
+            $bankAccount->bankName = $bankName;
+        
+            // Unset the bankAllowed relationship if you don't need it anymore
+            unset($bankAccount->bankAllowed);
+            unset($bankAccount->updated_at);
+        });
+
+        return $userBankAccounts;
     }
     public function getUserBankById($bankid){
         $userBankAccount = UserBankAccount::where('bankid', $bankid)->first();

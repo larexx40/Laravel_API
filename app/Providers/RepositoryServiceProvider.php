@@ -3,14 +3,15 @@
 namespace App\Providers;
 
 use App\Interfaces\AdminInterface;
+use App\Interfaces\BankAllowedInterface;
 use App\Interfaces\ResetPasswordInterface;
 use App\Interfaces\SendGridInterface;
 use App\Interfaces\UserBankInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Interfaces\UserTokenInterface;
 use App\Interfaces\ZeptoInterface;
-use App\Models\Admin;
 use App\Repositories\AdminRepository;
+use App\Repositories\BankAllowedRepository;
 use App\Repositories\ResetPasswordRepository;
 use App\Repositories\SendGridRepository;
 use App\Repositories\UserBankRepository;
@@ -29,6 +30,7 @@ class RepositoryServiceProvider extends ServiceProvider
         // register all database repositories (interfase and implementation)
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(UserBankInterface::class, UserBankRepository::class);
+        $this->app->bind(BankAllowedInterface::class, BankAllowedRepository::class);
         $this->app->bind(ResetPasswordInterface::class, ResetPasswordRepository::class);
         $this->app->bind(AdminInterface::class, AdminRepository::class);
         $this->app->bind(SendGridInterface::class, SendGridRepository::class);

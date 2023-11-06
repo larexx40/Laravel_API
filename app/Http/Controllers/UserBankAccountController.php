@@ -32,8 +32,8 @@ class UserBankAccountController extends BaseController
         try {
             $userid = Auth::user()->userid;
             $bankAccounts = $this->userBankRepository->getUserBankByUserid($userid);
-            $text = (count($bankAccounts) > 0)? APIUserResponse::$getRequestNoRecords : APIUserResponse::$getRequestNoRecords;
-            $bankAccounts = UserBankAccountResource::collection($bankAccounts);
+            $text = (count($bankAccounts) > 0)? APIUserResponse::$getRequestFetched : APIUserResponse::$getRequestNoRecords;
+            // $bankAccounts = UserBankAccountResource::collection($bankAccounts);
             return $this->respondOK($bankAccounts, $text);
         } catch(\Exception $e){
             return $this->handleException($e);
@@ -79,7 +79,6 @@ class UserBankAccountController extends BaseController
 
         $input['bankid'] = UtilityFunctions::generateUniqueShortKey('user_bank_accounts', 'bankid');
         $input['status'] = 1;
-        $input['bank_name'] = "Bank of America";
         $input['is_default'] = 0;
 
         try{

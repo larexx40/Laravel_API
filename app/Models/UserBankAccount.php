@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,7 +30,14 @@ class UserBankAccount extends Model
 
     public function bankAllowed()
     {
-        return $this->belongsTo(BankAllowed::class, 'sys_bank_id');
+        return $this->belongsTo(BankAllowed::class, 'sys_bank_id', "sysbankcode")->select(["sysbankcode",'name']);
+    }
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        //return Carbon::createFromFormat('Y-m-d H:i:s', $dates)->diffForHumans();
+        // OR
+        return Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('Y-m-d');
     }
 
 
