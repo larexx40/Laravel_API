@@ -164,6 +164,16 @@ class APIUserResponse
     public static $insufficientUserBalance = "Insufficient user balance";
     public static $newTransaction = "Transaction successful";
 
+    //thirdparty
+    public static $invalidSendGridid = "Invalid sendGrid id";
+    public static $addSendGrid = "SendGrid added successfully";
+    public static $deleteSendGrid = "SendGrid deleted successfully";
+    public static $updateSendGrid = "Sendgrid updated successfully";
+    public static $addZepto = "Zepto api added successfully";
+    public static $invalidZeptoid = "Invalid zepto id";
+    public static $deleteZepto = "Zepto deleted successfully";
+    public static $updateZepto = "Zepto updated successfully";
+
 
 
 }

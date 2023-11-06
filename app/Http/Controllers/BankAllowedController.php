@@ -79,10 +79,6 @@ class BankAllowedController extends BaseController
         }catch(\Exception $e){
             return $this->handleException($e);
         }
-
-
-
-
     }
 
     /**

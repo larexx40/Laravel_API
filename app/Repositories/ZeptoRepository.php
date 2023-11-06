@@ -37,4 +37,12 @@ class ZeptoRepository implements ZeptoInterface {
             return ZeptoApiDetails::where($column, $value)->$whatToGet();
         }
     }
+
+    public function checkIfExist($id){
+        return ZeptoApiDetails::where("id", $id)->exists();
+    }
+
+    public function changeStatus($id, $status){
+        return ZeptoApiDetails::where("id", $id)->update(["status"=> $status]);
+    }
 }

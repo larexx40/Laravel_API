@@ -28,5 +28,5 @@ Route::name('auth')->group(base_path ('routes/authroute.php'));
 Route::name('userbank')->group(base_path ('routes/userBankroute.php'));
 Route::name('user')->group(base_path ('routes/userRoute.php'));
 Route::name('admin')->group(base_path ('routes/adminRoute.php'));
-// Route::name('sendgrid')->group(base_path ('routes/sendgridRoute.php'));
+Route::name('thirdparty')->group(base_path ('routes/ThirdPartyRoute.php'));
 Route::name('onboarding')->group(base_path ('routes/onboardingRoute.php'));

@@ -12,4 +12,6 @@ Interface SendGridInterface{
     public function getSendGrid($column, $value);
     public function getSendGridData($column, $value, $whatToGet='');
     public function checkIfExist($id);
+    
+    public function changeStatus($id, $status);
 }

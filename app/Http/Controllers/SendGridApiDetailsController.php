@@ -18,14 +18,9 @@ class SendGridApiDetailsController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function getSendgrid(String $id)
-    {
-        try{
-            if(!empty($id)){
-                $allData = $this->sendGridRepository->getSendGridByid($id);
-            }else{
-                $allData = $this->sendGridRepository->getAllSendgrid();
-            }
+    public function getSendgrid(Request $request){
+        try{ 
+            $allData = $this->sendGridRepository->getAllSendgrid();
             $text = ($allData->count() > 0) ? APIUserResponse::$getRequestFetched: APIUserResponse::$getRequestNoRecords;
             $mainData = $allData;
             return $this->respondOK($mainData, $text);
@@ -35,6 +30,105 @@ class SendGridApiDetailsController extends BaseController
         }catch(\Exception $e){
             return $this->handleException($e);
         }
+    }
+
+    public function getSendgridByid(String $id)
+    {
+        try{ 
+            $allData = $this->sendGridRepository->getSendGridByid($id);
+
+            $text = (!empty($allData)) ? APIUserResponse::$getRequestFetched: APIUserResponse::$getRequestNoRecords;
+            $mainData = $allData;
+            return $this->respondOK($mainData, $text);
+
+        } catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+    }
+
+    public function addSendGrid(Request $request){
+        $input = $request->only([
+            'name', 'secretid', 'apikey', 'emailfrom'
+        ]);
+        //validate input
+        $validator = Validator::make($input, [
+                'name' => 'required|string',
+                'secretid' => 'required|string',
+                'apikey' => 'required|string',
+                'emailfrom' => 'required|string|email',
+            ]
+        );
+
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        };
+
+        try {
+            $new = $this->sendGridRepository->addSendGridApi($input);
+            $text = APIUserResponse::$addSendGrid;
+            $mainData = [];
+            return $this->respondOK($mainData, $text);
+
+        }catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+
+    }
+
+    public function updateSendGrid(Request $request){
+        $input = $request->only([
+            'name', 'secretid', 'apikey', 'emailfrom', 'id'
+        ]);
+        //validate input
+        $validator = Validator::make($input, [
+                'id'=> 'reequired|integer',
+                'name' => 'required|string',
+                'secretid' => 'required|string',
+                'apikey' => 'required|string',
+                'emailfrom' => 'required|string|email',
+            ]
+        );
+
+        if ($validator->fails()) {
+            $text = APIUserResponse::$respondValidationError;
+            $mainData= [];
+            $hint = $validator->errors()->all();
+            $linktosolve = "https://";
+            $errorCode = APIErrorCode::$internalUserWarning;
+            return $this->respondValidationError($mainData, $text, $hint, $linktosolve, $errorCode);
+        };
+
+        try {
+            $isExist = $this->sendGridRepository->checkIfExist($input['id']);
+            if(!$isExist){
+                // admin not found
+                $text = APIUserResponse::$invalidSendGridid;
+                $mainData= [];
+                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid sendgrid id.'];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
+            $new = $this->sendGridRepository->updateSendGrid($input);
+            $text = APIUserResponse::$updateSendGrid;
+            $mainData = [];
+            return $this->respondOK($mainData, $text);
+
+        }catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+
     }
 
     public function changeSendGridStatus(Request $request){
@@ -63,24 +157,45 @@ class SendGridApiDetailsController extends BaseController
 
         try {
 
-            $bankid = $input['id'];
+            $id = $input['id'];
             $status = $input['status'];
-            $bank = $this->bankAllowedRepository->getBankData("sysbankcode", $bankid, ["sysbankcode", "name"]);
-            if(empty($bank)){
+            $isExist = $this->sendGridRepository->checkIfExist($id);
+            if(!$isExist){
                 // admin not found
-                $text = APIUserResponse::$invalidBankId;
+                $text = APIUserResponse::$invalidSendGridid;
                 $mainData= [];
-                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid bank id.'];
+                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid sendgrid id.'];
                 $linktosolve = "https://";
                 $errorCode = APIErrorCode::$internalUserWarning;
                 return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
             }
-            $newAdmin = $this->bankAllowedRepository->changeBankStatus($bankid, $status);
+            $newAdmin = $this->sendGridRepository->changeStatus($id, $status);
             $text = APIUserResponse::$statusChangedMessage;
             $mainData = [];
             return $this->respondOK($mainData, $text);
+        } catch(QueryException $e){
+            return $this->handleQueryException($e);
+        }catch(\Exception $e){
+            return $this->handleException($e);
+        }
+    }
 
-
+    public function delete(String $id){
+        try {
+            $isExist = $this->sendGridRepository->checkIfExist($id);
+            if($isExist){
+                // admin not found
+                $text = APIUserResponse::$invalidSendGridid;
+                $mainData= [];
+                $hint = ["Ensure to use the method stated in the documentation.",'Pass in valid sendgrid id.'];
+                $linktosolve = "https://";
+                $errorCode = APIErrorCode::$internalUserWarning;
+                return $this->respondBadRequest($mainData, $text, $hint, $linktosolve, $errorCode);
+            }
+            $newAdmin = $this->sendGridRepository->deleteSendGrid($id);
+            $text = APIUserResponse::$deleteSendGrid;
+            $mainData = [];
+            return $this->respondOK($mainData, $text);
         } catch(QueryException $e){
             return $this->handleQueryException($e);
         }catch(\Exception $e){

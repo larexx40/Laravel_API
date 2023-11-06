@@ -5,8 +5,7 @@ namespace App\Repositories;
 use App\Interfaces\SendGridInterface;
 use App\Models\SendGridApiDetails;
 
-class SendGridReepository implements SendGridInterface{
-    //'addSendGridApi', 'updateSendGrid', 'getAllSendGrid', 'changeSendGridStatus', 'getSendGridByid', 'deleteSendGrid', 'getSendGrid', 'getSendGridData'
+class SendGridRepository implements SendGridInterface{
     public function addSendGridApi(array $newDetails){
         return SendGridApiDetails::create($newDetails);
     }
@@ -39,5 +38,9 @@ class SendGridReepository implements SendGridInterface{
 
     public function checkIfExist($id){
         return SendGridApiDetails::where("id", $id)->exists();
+    }
+
+    public function changeStatus($id, $status){
+        return SendGridApiDetails::where("id", $id)->update(["status"=> $status]);
     }
 }

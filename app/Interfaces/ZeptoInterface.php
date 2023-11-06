@@ -11,4 +11,8 @@ Interface ZeptoInterface{
     public function deleteZepto($id);
     public function getZepto($column, $value);
     public function getZeptoData($column, $value, $whatToGet='');
+    
+    public function changeStatus($id, $status);
+    
+    public function checkIfExist($id);
 }
